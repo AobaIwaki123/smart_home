@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: victoria-metrics-storage
+  labels:
+    app: victoria-metrics
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # 初期容量: 20GB（おうちインフラとして十分な容量）
+      # 電力データは小さいので、数年分のデータも余裕で保存できます
+      storage: 20Gi
+  # ストレージクラスを指定（環境によって調整が必要）
+  # storageClassName: local-path  # k3s/k8sの場合
+  # storageClassName: longhorn    # Longhornを使用している場合

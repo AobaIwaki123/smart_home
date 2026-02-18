@@ -19,7 +19,7 @@ commonAnnotations:
 resources:
   - namespace.yaml
   - exporter/
+  - victoria-metrics/
   # 将来的に追加されるであろう他のコンポーネント
   # - bff/
   # - frontend/
-  # - victoria-metrics/

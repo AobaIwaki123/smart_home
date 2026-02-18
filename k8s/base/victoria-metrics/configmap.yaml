@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: victoria-metrics-config
+  labels:
+    app: victoria-metrics
+    component: config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'smart-home'
+        environment: 'production'
+
+    # スクレイプ設定: Exporterからデータを収集
+    scrape_configs:
+      # スマートホーム Exporter からのデータ収集
+      - job_name: 'smart-home-exporter'
+        static_configs:
+          - targets:
+            # Kubernetesサービス名を使用してExporterにアクセス
+            - 'exporter.smart-home.svc.cluster.local:8000'
+        scrape_interval: 30s
+        scrape_timeout: 10s
+        metrics_path: '/metrics'
+        honor_labels: false
+        honor_timestamps: true
+        params:
+          format: ['prometheus']
+        
+        # メタデータラベルの追加
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: exporter.smart-home.svc.cluster.local:8000
+          
+        # Aobaさんの環境に最適化したラベリング
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            target_label: __tmp_name
+          - source_labels: [__tmp_name]
+            regex: '(smart_home_.*)'
+            target_label: service
+            replacement: 'smart-home-monitoring'
+          - regex: __tmp_name
+            action: labeldrop
+      
+      # VictoriaMetrics自身のメトリクスも監視
+      - job_name: 'victoria-metrics'
+        static_configs:
+          - targets:
+            - 'localhost:8428'
+        scrape_interval: 30s
+        metrics_path: '/metrics'

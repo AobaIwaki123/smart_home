@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: switchbot-exporter-production
+
+# smart-homeネームスペースに配置
+namespace: smart-home
+
+# ベース設定の参照
+resources:
+  - ../../base/exporter
+  - secret.yaml
+
+# Production環境用の名前プリフィックス
+namePrefix: prod-
+
+# 本番環境用の設定を上書き
+patchesStrategicMerge:
+  - deployment-patch.yaml
+
+# 本番環境用のイメージタグ
+images:
+  - name: switchbot-exporter
+    newTag: v1.0.0 # 本番では具体的なバージョンタグを使用

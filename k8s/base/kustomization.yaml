@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: smart-home-base
+
+# すべてのリソースをsmart-homeネームスペースに配置
+namespace: smart-home
+
+# 共通のラベルとアノテーション
+commonLabels:
+  app.kubernetes.io/part-of: smart-home-monitoring
+  project: smart-home
+
+commonAnnotations:
+  project.kubernetes.io/managed-by: "smart-home-automation"
+
+# ベースリソースの定義
+resources:
+  - namespace.yaml
+  - exporter/
+  # 将来的に追加されるであろう他のコンポーネント
+  # - bff/
+  # - frontend/
+  # - victoria-metrics/

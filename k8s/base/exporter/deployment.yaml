@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: switchbot-exporter
+  labels:
+    app: switchbot-exporter
+    component: metrics-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: switchbot-exporter
+  template:
+    metadata:
+      labels:
+        app: switchbot-exporter
+    spec:
+      containers:
+        - name: exporter
+          image: switchbot-exporter:latest # 本番では ghcr.io/username/switchbot-exporter:v1.0.0 等に置き換え
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: metrics
+              protocol: TCP
+          env:
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: METRICS_PORT
+              value: "8000"
+            - name: COLLECTION_INTERVAL
+              value: "60"
+            - name: DEVICE_CONFIG_PATH
+              value: "/app/devices.json"
+            # 実際のAPI認証情報は overlay で Secret を利用
+            - name: SWITCHBOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: switchbot-credentials
+                  key: token
+                  optional: true # mockモードでは必要ないため
+            - name: SWITCHBOT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: switchbot-credentials
+                  key: secret
+                  optional: true # mockモードでは必要ないため
+          volumeMounts:
+            - name: devices-config
+              mountPath: /app/devices.json
+              subPath: devices.json
+              readOnly: true
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 2
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1001
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: devices-config
+          configMap:
+            name: switchbot-devices-config
+            items:
+              - key: devices.json
+                path: devices.json
+      securityContext:
+        fsGroup: 1001

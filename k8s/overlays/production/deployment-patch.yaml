@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: switchbot-exporter
+spec:
+  template:
+    spec:
+      containers:
+        - name: exporter
+          env:
+            # 本番モード（実際のSwitchBot APIを使用）
+            - name: USE_MOCK
+              value: "false"
+            # 本番用ログレベル
+            - name: LOG_LEVEL
+              value: "INFO"
+            # 本番用収集間隔（60秒）
+            - name: COLLECTION_INTERVAL
+              value: "60"
+          resources:
+            requests:
+              memory: "128Mi" # 本番では少し多めにリクエスト
+              cpu: "200m"
+            limits:
+              memory: "512Mi" # 本番では余裕をもってリミット設定
+              cpu: "1000m"

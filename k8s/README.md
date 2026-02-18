@@ -1,217 +1,221 @@
-# SwitchBot Exporter - Kubernetes デプロイメントガイド
+# スマートホーム監視基盤 - Kubernetesデプロイメント
 
-このディレクトリには、SwitchBot ExporterをKubernetesクラスター上の **`smart-home`ネームスペース** にデプロイするためのマニフェストファイルが格納されています。
+SwitchBotデバイスを使った電力監視・コスト可視化システムのKubernetes構成。
 
-## 構成一覧
+## 🏗️ **アーキテクチャ概要**
+
+```mermaid
+graph LR
+    A[SwitchBot API] --> B[📡 Exporter]
+    B --> C[📊 VictoriaMetrics]
+    C --> D[⚡ BFF API]
+    C --> E[📈 Grafana]
+    D --> F[📱 Frontend]
+    
+    subgraph "Kubernetes Cluster"
+        B
+        C  
+        D
+        E
+        F
+    end
+```
+
+### **コンポーネント構成**
+| コンポーネント                                           | 役割                     | 詳細ドキュメント                |
+| -------------------------------------------------------- | ------------------------ | ------------------------------- |
+| **🔌 [Exporter](base/exporter/README.md)**                | データ収集エンジン       | SwitchBot APIから電力データ取得 |
+| **📊 [VictoriaMetrics](base/victoria-metrics/README.md)** | 時系列データベース       | 電力データの永続化・クエリ処理  |
+| **⚡ [BFF](../services/bff/README.md)**                   | ビジネスロジック         | コスト計算・API提供             |
+| **📱 [Frontend](../services/frontend/README.md)**         | ユーザーインターフェース | ダッシュボード・設定画面        |
+
+## 📁 **ディレクトリ構成**
 
 ```
 k8s/
-├── base/                       # 共通の基本設定
-│   ├── kustomization.yaml      # プロジェクト全体のベース設定
-│   ├── namespace.yaml          # smart-homeネームスペース定義
-│   └── exporter/               # SwitchBot Exporter固有のリソース
-│       ├── kustomization.yaml  # Exporterベース設定
-│       ├── deployment.yaml     # Deployment定義
-│       ├── service.yaml        # Service定義
-│       └── configmap.yaml      # デバイス設定（devices.json）
-└── overlays/
-    ├── mock/                   # モック環境用設定
+├── base/                           # 共通基本設定
+│   ├── namespace.yaml              # smart-home ネームスペース
+│   ├── kustomization.yaml          # ベース統合設定
+│   ├── exporter/                   # SwitchBot Exporter
+│   │   ├── README.md               # 📡 データ収集の詳細
+│   │   ├── deployment.yaml         
+│   │   ├── service.yaml           
+│   │   └── configmap.yaml         
+│   └── victoria-metrics/           # 時系列データベース
+│       ├── README.md               # 📊 データ永続化の詳細
+│       ├── statefulset.yaml       
+│       ├── service.yaml           
+│       ├── configmap.yaml         
+│       └── persistentvolumeclaim.yaml
+└── overlays/                       # 環境固有設定
+    ├── mock/                       # 開発・テスト環境
     │   ├── kustomization.yaml
     │   └── deployment-patch.yaml
-    └── production/             # 本番環境用設定
+    └── production/                 # 本番環境
         ├── kustomization.yaml
         ├── secret.yaml
         └── deployment-patch.yaml
 ```
 
-## Namespace戦略
+## 🚀 **クイックスタート**
 
-このプロジェクトでは **`smart-home`** ネームスペースを使用してリソースを隔離・管理します。
-
-### メリット
-- **名前衝突の回避**: 他のプロジェクトとの干渉を防止
-- **権限・リソース管理**: ResourceQuotaでプロジェクト単位の制限設定が可能
-- **一括削除**: `kubectl delete ns smart-home` でプロジェクト関連リソースを完全削除
-
-## 主な変更点（DockerからKubernetesへ）
-
-| 項目               | Docker Compose      | Kubernetes          |
-| ------------------ | ------------------- | ------------------- |
-| **デバイス設定**   | `COPY devices.json` | ConfigMapでマウント |
-| **API認証情報**    | 環境変数            | Secretリソース      |
-| **モック切り替え** | `USE_MOCK` env var  | Overlay設定         |
-| **設定管理**       | `.env` ファイル     | Kustomize           |
-
-## デプロイ手順
-
-### 1. モック環境のデプロイ
-
-開発・テスト用のモック環境をデプロイします（SwitchBot APIは使用しません）。
+### **1. 開発環境（モック）デプロイ**
+SwitchBot APIキー不要で、すぐに動作確認が可能：
 
 ```bash
-# smart-homeネームスペースが自動的に作成されます
+# 全コンポーネントのモック環境起動
 kubectl apply -k k8s/overlays/mock
 
-# デプロイ確認（ネームスペースを指定）
-kubectl get pods -n smart-home -l app=switchbot-exporter
-
-# ログ確認
-kubectl logs -n smart-home -l app=switchbot-exporter -f
+# デプロイ確認
+kubectl get pods -n smart-home
 
 # メトリクス確認
-kubectl port-forward -n smart-home svc/mock-switchbot-exporter 8000:8000
-# ブラウザで http://localhost:8000/metrics にアクセス
+kubectl port-forward -n smart-home svc/exporter 8000:8000
+# http://localhost:8000/metrics
+
+# VictoriaMetrics管理画面
+kubectl port-forward -n smart-home svc/victoria-metrics 8428:8428  
+# http://localhost:8428
 ```
 
-### 2. 本番環境のデプロイ
-
-実際のSwitchBot APIを使用する本番環境をデプロイします。
-
-#### 事前準備：認証情報の設定
+### **2. 本番環境デプロイ**  
+実際のSwitchBotデバイスと連携：
 
 ```bash
-# 1. 環境変数ファイルの準備
+# 認証情報設定
 cp k8s/.env.example k8s/.env
-vi k8s/.env  # 実際のSwitchBot認証情報を設定
+vim k8s/.env  # SwitchBot APIキーを設定
 
-# 2. Makeコマンドでsecret.yamlを自動生成
+# Secret生成 & デプロイ
 make k8s-secret-generate
-
-# 3. または手動でKubernetes Secretを作成する場合
-kubectl create secret generic switchbot-credentials \
-  --from-literal=token="YOUR_ACTUAL_SWITCHBOT_TOKEN" \
-  --from-literal=secret="YOUR_ACTUAL_SWITCHBOT_SECRET" \
-  --namespace=smart-home
-```
-
-#### デプロイ
-
-```bash
-# 本番環境のデプロイ（Makefileを使用）
-make k8s-deploy-production
-
-# または手動でデプロイ
 kubectl apply -k k8s/overlays/production
 
-# デプロイ確認
-kubectl get pods -n smart-home -l app=switchbot-exporter
-
-# Secret が正しく作成されているか確認
-kubectl get secret switchbot-credentials -n smart-home -o yaml
-
-# ログ確認（実際のAPIを叩いています）
+# 動作確認
 kubectl logs -n smart-home -l app=switchbot-exporter -f
 ```
 
-### 3. メトリクス収集の確認
+## 📊 **監視・運用コマンド**
 
+### **システム状態確認**
 ```bash
-# Pod内部からメトリクスエンドポイントを確認
-kubectl exec -it -n smart-home $(kubectl get pod -n smart-home -l app=switchbot-exporter -o jsonpath="{.items[0].metadata.name}") -- curl http://localhost:8000/metrics
+# 全リソース状態一覧
+kubectl get all -n smart-home
 
-# 外部からアクセス（ポートフォワード）
-kubectl port-forward -n smart-home svc/prod-switchbot-exporter 8000:8000
+# Pod詳細 & ログ確認
+kubectl describe pods -n smart-home
+kubectl logs -n smart-home --selector=app.kubernetes.io/part-of=smart-home-monitoring -f
+
+# リソース使用量監視
+kubectl top nodes
+kubectl top pods -n smart-home
 ```
 
-## カスタマイズ
-
-### デバイス設定の更新
-
-新しいSwitchBotデバイスを追加する場合：
-
-1. [k8s/base/exporter/configmap.yaml](k8s/base/exporter/configmap.yaml) の `devices.json` を編集
-2. ConfigMapを再適用: `kubectl apply -k k8s/overlays/production`
-3. Podを再起動: `kubectl rollout restart deployment/prod-switchbot-exporter -n smart-home`
-
-### イメージの更新
-
-新しいバージョンをデプロイする場合：
-
-1. [k8s/overlays/production/kustomization.yaml](k8s/overlays/production/kustomization.yaml) の `newTag` を更新
-2. 再適用: `kubectl apply -k k8s/overlays/production`
-
-## セキュリティ注意事項
-
-- **k8s/.env ファイルには機密情報が含まれるため、必ず .gitignore で除外されています**
-- 本番環境では必ず `make k8s-secret-generate` または `kubectl create secret` コマンドを使用してください
-- ConfigMapの内容は暗号化されていないため、機密情報は含めないでください
-
-## 利用可能なMakeコマンド
-
-### Kubernetes関連
+### **データ流通確認**
 ```bash
-# Secret生成（k8s/.env から自動生成）
-make k8s-secret-generate
+# 1. Exporter → メトリクス公開の確認
+kubectl port-forward -n smart-home svc/exporter 8000:8000
+curl http://localhost:8000/metrics | grep smart_home
 
-# モック環境デプロイ
-make k8s-deploy-mock
+# 2. VictoriaMetrics → データ蓄積の確認  
+kubectl port-forward -n smart-home svc/victoria-metrics 8428:8428
+curl "http://localhost:8428/api/v1/query?query=smart_home_power_watts"
 
-# 本番環境デプロイ（Secretも自動生成）
-make k8s-deploy-production
-
-# 生成されたファイルのクリーンアップ
-make k8s-clean
+# 3. 収集対象（targets）の疎通確認
+# http://localhost:8428/targets
 ```
 
-### Docker関連
+## 🔧 **設定カスタマイズ**
+
+### **監視デバイスの追加**
+デバイス設定は [`base/exporter/README.md`](base/exporter/README.md#設定のカスタマイズ) を参照
+
+### **データ保持期間の変更**
+ストレージ・保持期間は [`base/victoria-metrics/README.md`](base/victoria-metrics/README.md#設定のカスタマイズ) を参照
+
+### **環境切り替え**
 ```bash
-# Exporterイメージビルド
-make docker-build-exporter
+# モック → 本番切り替え
+kubectl delete -k k8s/overlays/mock
+kubectl apply -k k8s/overlays/production
 
-# 開発環境起動（Prometheus付き）
-make docker-dev
-
-# コンテナ停止・削除
-make docker-down
-
-# ログ監視
-make docker-logs
+# 設定変更の反映
+kubectl rollout restart deployment -n smart-home
 ```
 
-## トラブルシューティング
-
-### Pod起動時のエラー
+## 🛠️ **利用可能なMakeコマンド**
 
 ```bash
-# Pod状態の確認
-kubectl describe pod -n smart-home $(kubectl get pod -n smart-home -l app=switchbot-exporter -o jsonpath="{.items[0].metadata.name}")
+# Kubernetes関連
+make k8s-secret-generate     # API認証情報のSecret生成
+make k8s-deploy-mock         # モック環境デプロイ
+make k8s-deploy-production   # 本番環境デプロイ
+make k8s-clean              # 生成ファイルクリーンアップ
 
-# イベント確認
+# Docker開発環境
+make docker-build-exporter   # Exporterイメージビルド
+make docker-dev             # 開発環境起動（Prometheus付き）
+make docker-down            # コンテナ停止・削除
+make docker-logs            # ログ監視
+```
+
+## 🚨 **トラブルシューティング**
+
+### **Pod起動失敗**
+```bash
+# イベント & Pod状態確認
 kubectl get events -n smart-home --sort-by='.metadata.creationTimestamp'
+kubectl describe pods -n smart-home
 
-# ネームスペース全体のリソース確認
-kubectl get all -n smart-home
+# イメージプル・リソース不足等の診断
+kubectl get nodes
+kubectl describe nodes
 ```
 
-### メトリクス取得エラー
-
+### **データ収集停止**
 ```bash
-# ヘルスチェック確認
-kubectl exec -it -n smart-home $(kubectl get pod -n smart-home -l app=switchbot-exporter -o jsonpath="{.items[0].metadata.name}") -- curl -f http://localhost:8000/metrics
+# Exporter側の問題
+kubectl logs -n smart-home -l app=switchbot-exporter --tail=100
 
-# ネットワーク確認
-kubectl get svc -n smart-home -l app=switchbot-exporter
+# VictoriaMetrics側の問題  
+kubectl logs -n smart-home -l app=victoria-metrics --tail=100
+kubectl exec -n smart-home victoria-metrics-0 -- curl http://localhost:8428/targets
 ```
 
-### リソース使用量の監視
-
+### **ネットワーク疎通問題**
 ```bash
-# CPU/メモリ使用量確認
-kubectl top pod -n smart-home -l app=switchbot-exporter
+# サービス疎通確認
+kubectl get svc -n smart-home
+kubectl get endpoints -n smart-home
 
-# リソース制限の確認
-kubectl describe pod -n smart-home $(kubectl get pod -n smart-home -l app=switchbot-exporter -o jsonpath="{.items[0].metadata.name}") | grep -A 5 "Limits\|Requests"
+# Pod間通信テスト
+kubectl exec -n smart-home victoria-metrics-0 -- curl -f http://exporter.smart-home.svc.cluster.local:8000/metrics
 ```
 
-### Namespace関連の管理コマンド
+## 🔄 **アップグレード・メンテナンス**
 
+### **コンポーネントアップデート**
 ```bash
-# smart-homeネームスペースの全リソース確認
-kubectl get all -n smart-home
+# 新しいイメージタグに更新
+kubectl patch deployment exporter -n smart-home --patch='{"spec":{"template":{"spec":{"containers":[{"name":"exporter","image":"new-image:tag"}]}}}}'
 
-# Namespace削除（プロジェクト全体のクリーンアップ）
-kubectl delete namespace smart-home
-
-# ネームスペースの詳細確認
-kubectl describe namespace smart-home
+# StatefulSetの更新（VictoriaMetrics）
+kubectl patch statefulset victoria-metrics -n smart-home --patch='{"spec":{"template":{"spec":{"containers":[{"name":"victoria-metrics","image":"victoriametrics/victoria-metrics:v1.98.0"}]}}}}'
 ```
+
+### **データバックアップ**
+```bash
+# VictoriaMetricsデータのスナップショット
+kubectl exec -n smart-home victoria-metrics-0 -- curl -X POST http://localhost:8428/snapshot/create
+
+# PVCデータの外部バックアップ
+kubectl get pvc victoria-metrics-storage -n smart-home -o yaml > victoria-metrics-pvc-backup.yaml
+```
+
+## 📈 **次の実装フェーズ**
+
+✅ **フェーズ1完了**: データ蓄積基盤（VictoriaMetrics）  
+🚧 **フェーズ2**: コスト計算ロジック（[BFF API](../services/bff/README.md)）  
+📅 **フェーズ3**: ダッシュボード（[Frontend](../services/frontend/README.md)）  
+🎯 **フェーズ4**: AI予測・GitOps・通知機能
+
+詳細な実装計画は [実装フェーズ計画](../IMPL_PHASE.md) を参照してください。

@@ -37,4 +37,46 @@ docker-buildx-exporter:
 docker-logs:
 	cd services/exporter && docker compose logs -f switchbot-exporter
 
-.PHONY: pip docker-build-exporter docker-run-exporter docker-dev docker-test-exporter docker-down docker-buildx-exporter docker-logs
+# =============================================================================
+# Kubernetes Commands
+# =============================================================================
+
+# k8s/.env ファイルからsecret.yamlを自動生成
+k8s-secret-generate:
+	@echo "🔐 Generating Kubernetes secret from k8s/.env..."
+	@if [ ! -f k8s/.env ]; then \
+		echo "❌ Error: k8s/.env file not found!"; \
+		echo "💡 Please copy the example: cp k8s/.env.example k8s/.env"; \
+		echo "💡 Then edit k8s/.env with your actual SwitchBot credentials"; \
+		exit 1; \
+	fi
+	@source k8s/.env && \
+	SWITCHBOT_TOKEN_BASE64=$$(echo -n "$$SWITCHBOT_TOKEN" | base64) && \
+	SWITCHBOT_SECRET_BASE64=$$(echo -n "$$SWITCHBOT_SECRET" | base64) && \
+	sed -e "s/{{SWITCHBOT_TOKEN_BASE64}}/$$SWITCHBOT_TOKEN_BASE64/g" \
+	    -e "s/{{SWITCHBOT_SECRET_BASE64}}/$$SWITCHBOT_SECRET_BASE64/g" \
+	    k8s/overlays/production/secret.template.yaml > k8s/overlays/production/secret.yaml
+	@echo "✅ secret.yaml generated successfully!"
+	@echo "🚀 You can now run: kubectl apply -k k8s/overlays/production"
+
+# K8s環境のクリーンアップ（secret.yamlも削除）
+k8s-clean:
+	@echo "🧹 Cleaning up generated Kubernetes files..."
+	@rm -f k8s/overlays/production/secret.yaml
+	@echo "✅ Cleanup completed!"
+
+# モック環境のデプロイ
+k8s-deploy-mock:
+	@echo "🧪 Deploying mock environment..."
+	kubectl apply -k k8s/overlays/mock
+	@echo "✅ Mock environment deployed!"
+	@echo "📊 Check status: kubectl get pods -n smart-home"
+
+# 本番環境のデプロイ（secret.yamlを自動生成）
+k8s-deploy-production: k8s-secret-generate
+	@echo "🚀 Deploying production environment..."
+	kubectl apply -k k8s/overlays/production
+	@echo "✅ Production environment deployed!"
+	@echo "📊 Check status: kubectl get pods -n smart-home"
+
+.PHONY: pip docker-build-exporter docker-run-exporter docker-dev docker-test-exporter docker-down docker-buildx-exporter docker-logs k8s-secret-generate k8s-clean k8s-deploy-mock k8s-deploy-production

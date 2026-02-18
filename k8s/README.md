@@ -70,21 +70,27 @@ kubectl port-forward -n smart-home svc/mock-switchbot-exporter 8000:8000
 #### 事前準備：認証情報の設定
 
 ```bash
-# 実際のSwitchBot API認証情報をsmart-homeネームスペースに設定
+# 1. 環境変数ファイルの準備
+cp k8s/.env.example k8s/.env
+vi k8s/.env  # 実際のSwitchBot認証情報を設定
+
+# 2. Makeコマンドでsecret.yamlを自動生成
+make k8s-secret-generate
+
+# 3. または手動でKubernetes Secretを作成する場合
 kubectl create secret generic switchbot-credentials \
   --from-literal=token="YOUR_ACTUAL_SWITCHBOT_TOKEN" \
   --from-literal=secret="YOUR_ACTUAL_SWITCHBOT_SECRET" \
   --namespace=smart-home
-
-# または、secretファイルを事前に編集してから適用
-# vi k8s/overlays/production/secret.yaml
-# kubectl apply -f k8s/overlays/production/secret.yaml
 ```
 
 #### デプロイ
 
 ```bash
-# 本番環境のデプロイ
+# 本番環境のデプロイ（Makefileを使用）
+make k8s-deploy-production
+
+# または手動でデプロイ
 kubectl apply -k k8s/overlays/production
 
 # デプロイ確認
@@ -127,8 +133,41 @@ kubectl port-forward -n smart-home svc/prod-switchbot-exporter 8000:8000
 ## セキュリティ注意事項
 
 - **secret.yaml には実際の認証情報をコミットしないでください**
-- 本番環境では必ず `kubectl create secret` コマンドを使用して認証情報を設定してください
+- **k8s/.env ファイルには機密情報が含まれるため、必ず .gitignore で除外されています**
+- 本番環境では必ず `make k8s-secret-generate` または `kubectl create secret` コマンドを使用してください
 - ConfigMapの内容は暗号化されていないため、機密情報は含めないでください
+
+## 利用可能なMakeコマンド
+
+### Kubernetes関連
+```bash
+# Secret生成（k8s/.env から自動生成）
+make k8s-secret-generate
+
+# モック環境デプロイ
+make k8s-deploy-mock
+
+# 本番環境デプロイ（Secretも自動生成）
+make k8s-deploy-production
+
+# 生成されたファイルのクリーンアップ
+make k8s-clean
+```
+
+### Docker関連
+```bash
+# Exporterイメージビルド
+make docker-build-exporter
+
+# 開発環境起動（Prometheus付き）
+make docker-dev
+
+# コンテナ停止・削除
+make docker-down
+
+# ログ監視
+make docker-logs
+```
 
 ## トラブルシューティング
 

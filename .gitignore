@@ -1,2 +1,6 @@
 __pycache__/
 .env
+
+# Kubernetes secrets（機密情報）
+k8s/.env
+k8s/overlays/production/secret.yaml

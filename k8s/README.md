@@ -132,7 +132,6 @@ kubectl port-forward -n smart-home svc/prod-switchbot-exporter 8000:8000
 
 ## セキュリティ注意事項
 
-- **secret.yaml には実際の認証情報をコミットしないでください**
 - **k8s/.env ファイルには機密情報が含まれるため、必ず .gitignore で除外されています**
 - 本番環境では必ず `make k8s-secret-generate` または `kubectl create secret` コマンドを使用してください
 - ConfigMapの内容は暗号化されていないため、機密情報は含めないでください

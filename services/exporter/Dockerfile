@@ -26,6 +26,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # ソースコードのコピー
 COPY src/ ./src/
 
+# デバイス設定ファイルのコピー
+COPY devices.json .
+
 # 非特権ユーザーの作成（セキュリティのベストプラクティス）
 RUN useradd -m -u 1001 -s /bin/bash exporter-user && \
     chown -R exporter-user:exporter-user /app

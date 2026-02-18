@@ -1,0 +1,23 @@
+[
+    {
+        "id": "V2E012345678",
+        "name": "server",
+        "house": "myhome",
+        "room": "work",
+        "shelf": "rack_1"
+    },
+    {
+        "id": "V2E987654321",
+        "name": "nas",
+        "house": "myhome",
+        "room": "work",
+        "shelf": "rack_2"
+    },
+    {
+        "id": "V2E555666777",
+        "name": "router",
+        "house": "myhome",
+        "room": "living",
+        "shelf": "tv_board"
+    }
+]

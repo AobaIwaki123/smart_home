@@ -3,8 +3,6 @@ import hmac
 import hashlib
 import base64
 import uuid
-import asyncio
-import os
 import httpx
 from prometheus_client import Gauge
 

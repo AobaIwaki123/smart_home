@@ -1,2 +1,5 @@
+# services/exporter
 requests
 prometheus_client
+httpx
+python-dotenv

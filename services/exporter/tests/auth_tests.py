@@ -6,6 +6,9 @@ import uuid
 import requests
 import json
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def test_auth():

@@ -1,5 +1,4 @@
 import os
-import time
 import asyncio
 import random
 from prometheus_client import start_http_server, Gauge

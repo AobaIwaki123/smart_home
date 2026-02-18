@@ -39,6 +39,6 @@ async def test_fetch_device_status_success(client):
         shelf="Rack1",
         device_name="Server",
         device_id=device_id,
-    ).get()
+    )._value.get()
 
     assert val == 125.5

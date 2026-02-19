@@ -9,7 +9,8 @@ graph LR
     A[SwitchBot API] --> B[📡 Exporter]
     B --> C[📊 VictoriaMetrics]
     C --> D[⚡ BFF API]
-    C --> E[📈 Grafana]
+    C --> E[🧐 OpenObserve]
+    E -.-> G[📦 MinIO]
     D --> F[📱 Frontend]
     
     subgraph "Kubernetes Cluster"
@@ -18,6 +19,7 @@ graph LR
         D
         E
         F
+        G
     end
 ```
 
@@ -26,6 +28,8 @@ graph LR
 | -------------------------------------------------------- | ------------------------ | ------------------------------- |
 | **🔌 [Exporter](base/exporter/README.md)**                | データ収集エンジン       | SwitchBot APIから電力データ取得 |
 | **📊 [VictoriaMetrics](base/victoria-metrics/README.md)** | 時系列データベース       | 電力データの永続化・クエリ処理  |
+| **🧐 [OpenObserve](base/openobserve/README.md)**          | 可観測性プラットフォーム | ログ・メトリクスの可視化・分析  |
+| **📦 [MinIO](base/minio/README.md)**                      | オブジェクトストレージ   | ログ・監視データの永続保存      |
 | **⚡ [BFF](../services/bff/README.md)**                   | ビジネスロジック         | コスト計算・API提供             |
 | **📱 [Frontend](../services/frontend/README.md)**         | ユーザーインターフェース | ダッシュボード・設定画面        |
 
@@ -41,12 +45,18 @@ k8s/
 │   │   ├── deployment.yaml         
 │   │   ├── service.yaml           
 │   │   └── configmap.yaml         
-│   └── victoria-metrics/           # 時系列データベース
-│       ├── README.md               # 📊 データ永続化の詳細
-│       ├── statefulset.yaml       
-│       ├── service.yaml           
-│       ├── configmap.yaml         
-│       └── persistentvolumeclaim.yaml
+│   ├── victoria-metrics/           # 時系列データベース
+│   │   ├── README.md               # 📊 データ永続化の詳細
+│   │   ├── statefulset.yaml       
+│   │   └── ...
+│   ├── openobserve/                # 可視化・ログ管理
+│   │   ├── README.md               # 🧐 可視化基盤の詳細
+│   │   ├── deployment.yaml
+│   │   └── ...
+│   └── minio/                      # S3互換ストレージ
+│       ├── README.md               # 📦 ストレージの詳細
+│       ├── deployment.yaml
+│       └── ...
 └── overlays/                       # 環境固有設定
     ├── mock/                       # 開発・テスト環境
     │   ├── kustomization.yaml
@@ -76,6 +86,10 @@ kubectl port-forward -n smart-home svc/exporter 8000:8000
 # VictoriaMetrics管理画面
 kubectl port-forward -n smart-home svc/victoria-metrics 8428:8428  
 # http://localhost:8428
+
+# OpenObserve（可視化）
+kubectl port-forward -n smart-home svc/openobserve 5080:5080
+# http://localhost:5080
 ```
 
 ### **2. 本番環境デプロイ**  
@@ -120,8 +134,9 @@ curl http://localhost:8000/metrics | grep smart_home
 kubectl port-forward -n smart-home svc/victoria-metrics 8428:8428
 curl "http://localhost:8428/api/v1/query?query=smart_home_power_watts"
 
-# 3. 収集対象（targets）の疎通確認
-# http://localhost:8428/targets
+# 3. OpenObserve → 可視化UIの確認
+kubectl port-forward -n smart-home svc/openobserve 5080:5080
+# http://localhost:5080
 ```
 
 ## 🔧 **設定カスタマイズ**
@@ -179,6 +194,15 @@ kubectl logs -n smart-home -l app=switchbot-exporter --tail=100
 # VictoriaMetrics側の問題  
 kubectl logs -n smart-home -l app=victoria-metrics --tail=100
 kubectl exec -n smart-home victoria-metrics-0 -- curl http://localhost:8428/targets
+```
+
+### **可視化・ストレージの問題**
+```bash
+# OpenObserveのログ確認
+kubectl logs -n smart-home -l app=openobserve
+
+# MinIOのログ確認
+kubectl logs -n smart-home -l app=minio
 ```
 
 ### **ネットワーク疎通問題**

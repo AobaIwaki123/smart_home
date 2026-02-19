@@ -6,13 +6,14 @@ pip:
 # =============================================================================
 
 # 実機の deviceId を確認するスクリプトを実行（要: SWITCHBOT_TOKEN / SWITCHBOT_SECRET）
+# プロジェクトルートの .env を自動読み込みする（export 済みの場合はそちらを優先）
 list-devices:
-	@if [ -z "$$SWITCHBOT_TOKEN" ] || [ -z "$$SWITCHBOT_SECRET" ]; then \
-		echo "ERROR: 環境変数が未設定です。以下を実行してください:"; \
-		echo "  export SWITCHBOT_TOKEN='your_token'"; \
-		echo "  export SWITCHBOT_SECRET='your_secret'"; \
+	@set -a; [ -f .env ] && . ./.env; set +a; \
+	if [ -z "$$SWITCHBOT_TOKEN" ] || [ -z "$$SWITCHBOT_SECRET" ]; then \
+		echo "ERROR: SWITCHBOT_TOKEN または SWITCHBOT_SECRET が未設定です。"; \
+		echo "  .env ファイルを作成するか export で設定してください。"; \
 		exit 1; \
-	fi
+	fi; \
 	cd services/exporter && \
 	docker build -q -t switchbot-exporter:latest . && \
 	docker run --rm \
@@ -22,13 +23,14 @@ list-devices:
 		python scripts/list_devices.py
 
 # 実機モードで Exporter を起動（要: SWITCHBOT_TOKEN / SWITCHBOT_SECRET）
+# プロジェクトルートの .env を自動読み込みする（export 済みの場合はそちらを優先）
 run-real:
-	@if [ -z "$$SWITCHBOT_TOKEN" ] || [ -z "$$SWITCHBOT_SECRET" ]; then \
-		echo "ERROR: 環境変数が未設定です。以下を実行してください:"; \
-		echo "  export SWITCHBOT_TOKEN='your_token'"; \
-		echo "  export SWITCHBOT_SECRET='your_secret'"; \
+	@set -a; [ -f .env ] && . ./.env; set +a; \
+	if [ -z "$$SWITCHBOT_TOKEN" ] || [ -z "$$SWITCHBOT_SECRET" ]; then \
+		echo "ERROR: SWITCHBOT_TOKEN または SWITCHBOT_SECRET が未設定です。"; \
+		echo "  .env ファイルを作成するか export で設定してください。"; \
 		exit 1; \
-	fi
+	fi; \
 	cd services/exporter && \
 	SWITCHBOT_TOKEN="$$SWITCHBOT_TOKEN" \
 	SWITCHBOT_SECRET="$$SWITCHBOT_SECRET" \

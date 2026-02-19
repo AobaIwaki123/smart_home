@@ -27,7 +27,7 @@ spec:
       containers:
         - name: openobserve
           # Rustベースの単一バイナリ — ログ・メトリクス・トレース統合受信
-          image: public.ecr.aws/zinclabs/openobserve:v0.14.4
+          image: openobserve/openobserve:v0.60.0
           imagePullPolicy: IfNotPresent
 
           ports:

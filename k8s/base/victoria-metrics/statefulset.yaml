@@ -26,7 +26,7 @@ spec:
       containers:
         - name: victoria-metrics
           # VictoriaMetricsの最新LTS版を使用
-          image: victoriametrics/victoria-metrics:v1.97.1
+          image: victoriametrics/victoria-metrics:1.136.0
           imagePullPolicy: IfNotPresent
 
           args:

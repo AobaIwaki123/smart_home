@@ -1,0 +1,23 @@
+services:
+  dummy-exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dummy-exporter
+    ports:
+      - "9100:9100"
+    environment:
+      - METRICS_PORT=9100
+      - JITTER_INTERVAL=${JITTER_INTERVAL:-15}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9100/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  default:
+    driver: bridge

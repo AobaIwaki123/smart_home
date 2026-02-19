@@ -13,8 +13,6 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - METRICS_PORT=8000
       - COLLECTION_INTERVAL=${COLLECTION_INTERVAL:-60}
-      # モックデータ機能の切り替え（true: モック使用, false: 実際のAPI使用）
-      - USE_MOCK=${USE_MOCK:-false}
       # デバイス設定ファイルのパス
       - DEVICE_CONFIG_PATH=${DEVICE_CONFIG_PATH:-/app/devices.json}
     restart: unless-stopped

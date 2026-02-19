@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: victoriametrics
+  labels:
+    app: victoriametrics
+    component: metrics-storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: victoriametrics
+      component: metrics-storage
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: victoriametrics
+        component: metrics-storage
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+
+      containers:
+        - name: victoriametrics
+          image: victoriametrics/victoria-metrics:v1.97.1
+          imagePullPolicy: IfNotPresent
+
+          args:
+            # スクレイプ設定（vmagent の代わりにここで直接スクレイプ）
+            - -promscrape.config=/etc/victoria-metrics/scrape.yml
+            # データ永続化パス
+            - -storageDataPath=/victoria-metrics-data
+            # 保存期間
+            - -retentionPeriod=12
+            # HTTPリッスンアドレス（PromQL / remote write / UI）
+            - -httpListenAddr=0.0.0.0:8428
+            - -loggerLevel=INFO
+
+          ports:
+            - name: http
+              containerPort: 8428
+              protocol: TCP
+
+          volumeMounts:
+            - name: data
+              mountPath: /victoria-metrics-data
+            - name: scrape-config
+              mountPath: /etc/victoria-metrics
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: victoria-metrics-data
+        - name: scrape-config
+          configMap:
+            name: victoria-metrics-scrape-config

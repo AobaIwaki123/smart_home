@@ -11,12 +11,9 @@ namespace: smart-home
 resources:
   - ../../base/namespace
   - ../../base/exporter
-  - ../../base/vmagent
-  - ../../base/minio
-  - ../../base/openobserve
+  - ../../base/victoriametrics
+  - ../../base/grafana
   - secret.yaml
-  - minio-secret.yaml
-  - openobserve-secret.yaml
 
 # Production環境用の名前プリフィックス
 namePrefix: prod-
@@ -24,18 +21,14 @@ namePrefix: prod-
 # 本番環境用の設定を上書き
 patches:
   - path: deployment-patch.yaml
-  - path: vmagent-config-patch.yaml
+  - path: victoriametrics-config-patch.yaml
     target:
       kind: ConfigMap
-      name: vmagent-config
-  - path: vmagent-deployment-patch.yaml
+      name: victoria-metrics-scrape-config
+  - path: grafana-datasource-patch.yaml
     target:
-      kind: Deployment
-      name: vmagent
-  - path: openobserve-patch.yaml
-    target:
-      kind: Deployment
-      name: openobserve
+      kind: ConfigMap
+      name: grafana-datasources
 
 # 本番環境用のイメージタグ
 images:

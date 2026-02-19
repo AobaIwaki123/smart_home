@@ -20,9 +20,8 @@ commonAnnotations:
 resources:
   - namespace/
   - exporter/
-  - vmagent/
-  - minio/
-  - openobserve/
+  - victoriametrics/
+  - grafana/
   # 将来的に追加されるであろう他のコンポーネント
   # - bff/
   # - frontend/

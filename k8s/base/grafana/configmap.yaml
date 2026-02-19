@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  labels:
+    app: grafana
+    component: visualization
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: VictoriaMetrics
+        type: prometheus
+        # NOTE: 本番環境では overlays/production の patch で prod- prefix に上書きする
+        url: http://victoriametrics:8428
+        isDefault: true
+        access: proxy
+        jsonData:
+          timeInterval: "30s"

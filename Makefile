@@ -90,21 +90,7 @@ k8s-secret-generate: ## Generate K8s secret from .env
 	sed -e "s/{{SWITCHBOT_TOKEN_BASE64}}/$$SWITCHBOT_TOKEN_BASE64/g" \
 	    -e "s/{{SWITCHBOT_SECRET_BASE64}}/$$SWITCHBOT_SECRET_BASE64/g" \
 	    k8s/overlays/production/secret.template.yaml > k8s/overlays/production/secret.yaml
-	@source .env && \
-	MINIO_ACCESS_KEY_BASE64=$$(printf '%s' "$$MINIO_ACCESS_KEY" | base64) && \
-	MINIO_SECRET_KEY_BASE64=$$(printf '%s' "$$MINIO_SECRET_KEY" | base64) && \
-	sed -e "s/{{MINIO_ACCESS_KEY_BASE64}}/$$MINIO_ACCESS_KEY_BASE64/g" \
-	    -e "s/{{MINIO_SECRET_KEY_BASE64}}/$$MINIO_SECRET_KEY_BASE64/g" \
-	    k8s/overlays/production/minio-secret.template.yaml > k8s/overlays/production/minio-secret.yaml
-	@source .env && \
-	ZO_ROOT_USER_EMAIL_BASE64=$$(printf '%s' "$$ZO_ROOT_USER_EMAIL" | base64) && \
-	ZO_ROOT_USER_PASSWORD_BASE64=$$(printf '%s' "$$ZO_ROOT_USER_PASSWORD" | base64) && \
-	ZO_BASICAUTH_BASE64=$$(printf '%s:%s' "$$ZO_ROOT_USER_EMAIL" "$$ZO_ROOT_USER_PASSWORD" | base64 | tr -d '\n' | base64) && \
-	sed -e "s/{{ZO_ROOT_USER_EMAIL_BASE64}}/$$ZO_ROOT_USER_EMAIL_BASE64/g" \
-	    -e "s/{{ZO_ROOT_USER_PASSWORD_BASE64}}/$$ZO_ROOT_USER_PASSWORD_BASE64/g" \
-	    -e "s/{{ZO_BASICAUTH_BASE64}}/$$ZO_BASICAUTH_BASE64/g" \
-	    k8s/overlays/production/openobserve-secret.template.yaml > k8s/overlays/production/openobserve-secret.yaml
-	@echo "✅ secret.yaml / minio-secret.yaml / openobserve-secret.yaml generated successfully!"
+	@echo "✅ secret.yaml generated successfully!"
 	@echo "🚀 You can now run: kubectl apply -k k8s/overlays/production"
 
 k8s-secret-clean: ## Clean up generated Kubernetes files

@@ -7,6 +7,8 @@ metadata:
 # Grafana — VictoriaMetrics (PromQL互換) 可視化フロントエンド
 resources:
   - configmap.yaml
+  - configmap-dashboard-provisioner.yaml
+  - configmap-dashboard-device-overview.yaml
   - deployment.yaml
   - service.yaml
 

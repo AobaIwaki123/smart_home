@@ -10,6 +10,7 @@ data:
     apiVersion: 1
     datasources:
       - name: VictoriaMetrics
+        uid: victoriametrics
         type: prometheus
         # NOTE: 本番環境では overlays/production の patch で prod- prefix に上書きする
         url: http://victoriametrics:8428

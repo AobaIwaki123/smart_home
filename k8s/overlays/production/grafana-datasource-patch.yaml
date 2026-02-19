@@ -7,6 +7,7 @@ data:
     apiVersion: 1
     datasources:
       - name: VictoriaMetrics
+        uid: victoriametrics
         type: prometheus
         # namePrefix: prod- により prod-victoriametrics サービスへ接続
         url: http://prod-victoriametrics:8428

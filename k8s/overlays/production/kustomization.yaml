@@ -11,6 +11,7 @@ namespace: smart-home
 resources:
   - ../../base/namespace
   - ../../base/exporter
+  - ../../base/victoria-metrics
   - secret.yaml
 
 # Production環境用の名前プリフィックス
@@ -19,6 +20,7 @@ namePrefix: prod-
 # 本番環境用の設定を上書き
 patches:
   - path: deployment-patch.yaml
+  - path: victoria-metrics-config-patch.yaml
 
 # 本番環境用のイメージタグ
 images:

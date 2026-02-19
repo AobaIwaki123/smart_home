@@ -2,9 +2,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: victoria-metrics-config
-  labels:
-    app: victoria-metrics
-    component: config
 data:
   prometheus.yml: |
     global:
@@ -18,7 +15,7 @@ data:
       - job_name: 'smart-home-exporter'
         static_configs:
           - targets:
-            - 'switchbot-exporter.smart-home.svc.cluster.local:8000'
+            - 'prod-switchbot-exporter.smart-home.svc.cluster.local:8000'
         scrape_interval: 30s
         scrape_timeout: 10s
         metrics_path: '/metrics'

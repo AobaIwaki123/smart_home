@@ -7,6 +7,8 @@ spec:
     spec:
       containers:
         - name: exporter
+          image: ghcr.io/aobaiwaki123/switchbot-exporter:latest
+          imagePullPolicy: Always
           env:
             # 本番モード（実際のSwitchBot APIを使用）
             - name: USE_MOCK

@@ -7,6 +7,8 @@ spec:
     spec:
       containers:
         - name: exporter
+          image: ghcr.io/aobaiwaki123/switchbot-exporter:latest
+          imagePullPolicy: IfNotPresent
           env:
             # モックモードを有効化
             - name: USE_MOCK

@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
         - name: exporter
-          image: switchbot-exporter:latest # 本番では ghcr.io/username/switchbot-exporter:v1.0.0 等に置き換え
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/aobaiwaki123/switchbot-exporter:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
               name: metrics

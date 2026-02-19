@@ -23,4 +23,5 @@ patches:
 # 本番環境用のイメージタグ
 images:
   - name: switchbot-exporter
-    newTag: v1.0.0 # 本番では具体的なバージョンタグを使用
+    newName: ghcr.io/aobaiwaki123/switchbot-exporter
+    newTag: latest

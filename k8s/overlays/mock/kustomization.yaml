@@ -22,4 +22,5 @@ patches:
 # Mock環境用のイメージタグ（開発用）
 images:
   - name: switchbot-exporter
-    newTag: dev
+    newName: ghcr.io/aobaiwaki123/switchbot-exporter
+    newTag: latest

@@ -23,9 +23,9 @@ async def test_fetch_device_status_success(client):
     device = {
         "id": device_id,
         "name": "Server",
-        "house": "Home",
         "room": "Work",
         "shelf": "Rack1",
+        "parent_id": "none",
     }
 
     # 2. 実行
@@ -34,11 +34,11 @@ async def test_fetch_device_status_success(client):
     # 3. 検証：PrometheusのGaugeに正しい値セットされたか
     # labelsの順序は定義順
     val = POWER_WATT.labels(
-        house="Home",
         room="Work",
         shelf="Rack1",
         device_name="Server",
         device_id=device_id,
+        parent_id="none",
     )._value.get()
 
     assert val == 125.5
@@ -56,9 +56,9 @@ async def test_fetch_device_status_api_error_500(client):
     device = {
         "id": device_id,
         "name": "Server",
-        "house": "Home",
         "room": "Work",
         "shelf": "Rack1",
+        "parent_id": "none",
     }
 
     # 実行（エラーが発生するはず）
@@ -88,9 +88,9 @@ async def test_fetch_device_status_missing_weight_field(client):
     device = {
         "id": device_id,
         "name": "Server",
-        "house": "Home",
         "room": "Work",
         "shelf": "Rack1",
+        "parent_id": "none",
     }
 
     # 実行
@@ -98,11 +98,11 @@ async def test_fetch_device_status_missing_weight_field(client):
 
     # デフォルト値0がセットされているか確認
     val = POWER_WATT.labels(
-        house="Home",
         room="Work",
         shelf="Rack1",
         device_name="Server",
         device_id=device_id,
+        parent_id="none",
     )._value.get()
 
     assert val == 0, "weightフィールドが欠落している場合は0をセットする必要があります"
@@ -127,9 +127,9 @@ async def test_fetch_device_status_invalid_status_code(client):
     device = {
         "id": device_id,
         "name": "Server",
-        "house": "Home",
         "room": "Work",
         "shelf": "Rack1",
+        "parent_id": "none",
     }
 
     # 実行（例外が発生するはず）
@@ -154,9 +154,9 @@ async def test_fetch_device_status_timeout(client):
     device = {
         "id": device_id,
         "name": "Server",
-        "house": "Home",
         "room": "Work",
         "shelf": "Rack1",
+        "parent_id": "none",
     }
 
     # 実行
@@ -189,9 +189,9 @@ async def test_fetch_device_status_rate_limit_header(client):
     device = {
         "id": device_id,
         "name": "Server",
-        "house": "Home",
         "room": "Work",
         "shelf": "Rack1",
+        "parent_id": "none",
     }
 
     # 実行
@@ -211,9 +211,9 @@ async def test_fetch_device_status_cleans_up_stale_metrics(client):
     device = {
         "id": device_id,
         "name": "Server",
-        "house": "Home",
         "room": "Work",
         "shelf": "Rack1",
+        "parent_id": "none",
     }
 
     # 1. 最初に正常なデータをセット
@@ -232,11 +232,11 @@ async def test_fetch_device_status_cleans_up_stale_metrics(client):
 
     # メトリクスがセットされていることを確認
     val = POWER_WATT.labels(
-        house="Home",
         room="Work",
         shelf="Rack1",
         device_name="Server",
         device_id=device_id,
+        parent_id="none",
     )._value.get()
     assert val == 50.0
 
@@ -255,11 +255,11 @@ async def test_fetch_device_status_cleans_up_stale_metrics(client):
     # (削除されているため、アクセスしようとすると KeyError または None が返される)
     try:
         stale_val = POWER_WATT.labels(
-            house="Home",
             room="Work",
             shelf="Rack1",
             device_name="Server",
             device_id=device_id,
+            parent_id="none",
         )._value.get()
         # メトリクスが削除されていれば、この値は存在しないか、デフォルト値になる
         assert stale_val is None or stale_val == 0, (

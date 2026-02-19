@@ -1,32 +1,32 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: switchbot-devices-config
-  labels:
-    app: switchbot-exporter
-    component: configuration
+    name: switchbot-devices-config
+    labels:
+        app: switchbot-exporter
+        component: configuration
 data:
-  devices.json: |
-    [
-        {
-            "id": "V2E012345678",
-            "name": "server",
-            "house": "myhome",
-            "room": "work",
-            "shelf": "rack_1"
-        },
-        {
-            "id": "V2E987654321",
-            "name": "nas",
-            "house": "myhome",
-            "room": "work",
-            "shelf": "rack_2"
-        },
-        {
-            "id": "V2E555666777",
-            "name": "router",
-            "house": "myhome",
-            "room": "living",
-            "shelf": "tv_board"
-        }
-    ]
+    devices.json: |
+        [
+            {
+                "id": "V2E012345678",
+                "name": "main_tap",
+                "room": "work",
+                "shelf": "rack_1",
+                "parent_id": "none"
+            },
+            {
+                "id": "V2E987654321",
+                "name": "server",
+                "room": "work",
+                "shelf": "rack_1",
+                "parent_id": "V2E012345678"
+            },
+            {
+                "id": "V2E555666777",
+                "name": "router",
+                "room": "living",
+                "shelf": "tv_board",
+                "parent_id": "none"
+            }
+        ]

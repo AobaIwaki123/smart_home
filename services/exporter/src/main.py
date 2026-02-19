@@ -17,7 +17,7 @@ from prometheus_client import Gauge, start_http_server
 POWER_WATT = Gauge(
     "switchbot_power_watts",
     "Current power usage in Watts",
-    ["house", "room", "shelf", "device_name", "device_id"],
+    ["room", "shelf", "device_name", "device_id", "parent_id"],
 )
 
 DEVICE_UP = Gauge(
@@ -74,11 +74,11 @@ async def fetch_device_status(
             wattage = data["body"].get("weight", 0)
 
             POWER_WATT.labels(
-                house=device["house"],
                 room=device["room"],
                 shelf=device["shelf"],
                 device_name=device["name"],
                 device_id=device_id,
+                parent_id=device.get("parent_id", "none"),
             ).set(wattage)
 
             DEVICE_UP.labels(device_id=device_id).set(1)
@@ -90,11 +90,11 @@ async def fetch_device_status(
         DEVICE_UP.labels(device_id=device_id).set(0)
         try:
             POWER_WATT.remove(
-                device["house"],
                 device["room"],
                 device["shelf"],
                 device["name"],
                 device_id,
+                device.get("parent_id", "none"),
             )
         except KeyError:
             pass  # すでに存在しない場合は無視
@@ -147,11 +147,11 @@ async def fetch_device_status_mock(device: Dict[str, str]) -> None:
 
             # sourceラベルを追加してモック環境であることを明示
             POWER_WATT.labels(
-                house=device["house"],
                 room=device["room"],
                 shelf=device["shelf"],
                 device_name=device["name"],
                 device_id=device_id,
+                parent_id=device.get("parent_id", "none"),
             ).set(wattage)
 
             DEVICE_UP.labels(device_id=device_id).set(1)
@@ -165,11 +165,11 @@ async def fetch_device_status_mock(device: Dict[str, str]) -> None:
         DEVICE_UP.labels(device_id=device_id).set(0)
         try:
             POWER_WATT.remove(
-                device["house"],
                 device["room"],
                 device["shelf"],
                 device["name"],
                 device_id,
+                device.get("parent_id", "none"),
             )
         except KeyError:
             pass
@@ -186,17 +186,17 @@ def load_device_config(config_path: str = "devices.json") -> List[Dict[str, str]
         return [
             {
                 "id": "V2E012345678",
-                "name": "server",
-                "house": "myhome",
+                "name": "main_tap",
                 "room": "work",
                 "shelf": "rack_1",
+                "parent_id": "none",
             },
             {
                 "id": "V2E987654321",
-                "name": "nas",
-                "house": "myhome",
+                "name": "server",
                 "room": "work",
-                "shelf": "rack_2",
+                "shelf": "rack_1",
+                "parent_id": "V2E012345678",
             },
         ]
 

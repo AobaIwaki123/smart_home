@@ -1,23 +1,23 @@
 [
     {
         "id": "V2E012345678",
-        "name": "server",
-        "house": "myhome",
+        "name": "main_tap",
         "room": "work",
-        "shelf": "rack_1"
+        "shelf": "rack_1",
+        "parent_id": "none"
     },
     {
         "id": "V2E987654321",
-        "name": "nas",
-        "house": "myhome",
+        "name": "server",
         "room": "work",
-        "shelf": "rack_2"
+        "shelf": "rack_1",
+        "parent_id": "V2E012345678"
     },
     {
         "id": "V2E555666777",
         "name": "router",
-        "house": "myhome",
         "room": "living",
-        "shelf": "tv_board"
+        "shelf": "tv_board",
+        "parent_id": "none"
     }
 ]

@@ -79,28 +79,28 @@ docker-logs:
 # Kubernetes Commands
 # =============================================================================
 
-# k8s/.env ファイルからsecret.yamlを自動生成
+# .env ファイルからsecret.yamlを自動生成
 k8s-secret-generate:
-	@echo "🔐 Generating Kubernetes secret from k8s/.env..."
-	@if [ ! -f k8s/.env ]; then \
-		echo "❌ Error: k8s/.env file not found!"; \
-		echo "💡 Please copy the example: cp k8s/.env.example k8s/.env"; \
-		echo "💡 Then edit k8s/.env with your actual SwitchBot credentials"; \
+	@echo "🔐 Generating Kubernetes secret from .env..."
+	@if [ ! -f .env ]; then \
+		echo "❌ Error: .env file not found!"; \
+		echo "💡 Please copy the example: cp .env.example .env"; \
+		echo "💡 Then edit .env with your actual SwitchBot credentials"; \
 		exit 1; \
 	fi
-	@source k8s/.env && \
+	@source .env && \
 	SWITCHBOT_TOKEN_BASE64=$$(printf '%s' "$$SWITCHBOT_TOKEN" | base64) && \
 	SWITCHBOT_SECRET_BASE64=$$(printf '%s' "$$SWITCHBOT_SECRET" | base64) && \
 	sed -e "s/{{SWITCHBOT_TOKEN_BASE64}}/$$SWITCHBOT_TOKEN_BASE64/g" \
 	    -e "s/{{SWITCHBOT_SECRET_BASE64}}/$$SWITCHBOT_SECRET_BASE64/g" \
 	    k8s/overlays/production/secret.template.yaml > k8s/overlays/production/secret.yaml
-	@source k8s/.env && \
+	@source .env && \
 	MINIO_ACCESS_KEY_BASE64=$$(printf '%s' "$$MINIO_ACCESS_KEY" | base64) && \
 	MINIO_SECRET_KEY_BASE64=$$(printf '%s' "$$MINIO_SECRET_KEY" | base64) && \
 	sed -e "s/{{MINIO_ACCESS_KEY_BASE64}}/$$MINIO_ACCESS_KEY_BASE64/g" \
 	    -e "s/{{MINIO_SECRET_KEY_BASE64}}/$$MINIO_SECRET_KEY_BASE64/g" \
 	    k8s/overlays/production/minio-secret.template.yaml > k8s/overlays/production/minio-secret.yaml
-	@source k8s/.env && \
+	@source .env && \
 	ZO_ROOT_USER_EMAIL_BASE64=$$(printf '%s' "$$ZO_ROOT_USER_EMAIL" | base64) && \
 	ZO_ROOT_USER_PASSWORD_BASE64=$$(printf '%s' "$$ZO_ROOT_USER_PASSWORD" | base64) && \
 	ZO_BASICAUTH_BASE64=$$(printf '%s:%s' "$$ZO_ROOT_USER_EMAIL" "$$ZO_ROOT_USER_PASSWORD" | base64) && \

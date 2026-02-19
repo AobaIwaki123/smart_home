@@ -17,13 +17,40 @@ Kubernetesクラスタ内で動作し、ステートフルなアプリケーシ�
     *   OpenObserveのプライマリストレージとして構成されています。
     *   OpenObserveは内部的にS3 APIを使用して、MinIOに対してデータの読み書きを行います。
 
+## ⚙️ **環境変数・設定**
+
+MinIOの動作に必要な環境変数は、KubernetesのSecretおよびConfigMapを通じて注入されます。
+機密情報は `k8s/.env` ファイルで管理し、`make k8s-secret-generate` コマンドでSecretを生成します。
+
+| 環境変数名            | 説明                                 | 注入元                                          |
+| --------------------- | ------------------------------------ | ----------------------------------------------- |
+| `MINIO_ROOT_USER`     | 管理者ユーザー名（アクセスキー）     | Secret: `minio-credentials` (key: `access-key`) |
+| `MINIO_ROOT_PASSWORD` | 管理者パスワード（シークレットキー） | Secret: `minio-credentials` (key: `secret-key`) |
+
+### **設定ファイル (k8s/.env)**
+
+デプロイ前に以下の変数を `k8s/.env` に設定する必要があります。
+
+```bash
+# MinIO (S3 Compatible Storage)
+MINIO_ACCESS_KEY=your-minio-access-key  # -> MINIO_ROOT_USER
+MINIO_SECRET_KEY=your-minio-secret-key  # -> MINIO_ROOT_PASSWORD
+```
+
 ## 🚀 **デプロイメント & 動作確認**
+
+MinIOは `overlays/production` の一部としてデプロイされることを想定しています（認証情報SecretがOverlay層で管理されているため）。
+単体での適用ではなく、システム全体としてデプロイしてください。
 
 ### **デプロイ**
 
 ```bash
-# MinIOを含むベース環境の適用
-kubectl apply -k k8s/base/minio
+# 全体（Productoin環境）のデプロイ
+make k8s-deploy-production
+
+# または手動で実行:
+# make k8s-secret-generate
+# kubectl apply -k k8s/overlays/production
 ```
 
 ### **動作確認**

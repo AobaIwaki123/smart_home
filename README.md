@@ -3,6 +3,8 @@
 ```sh
 smart_home/
 ├── README.md               # プロジェクト全体の概要・仕様書
+├── .env.example            # 環境変数のテンプレート（機密情報は含まない）
+├── Makefile                # ビルド・デプロイ・テストのタスク定義
 ├── k8s/                    # Kubernetesマニフェスト（GitOpsを見据えて分離）
 │   ├── base/               # 全環境共通設定
 │   │   ├── victoria-metrics/
@@ -28,6 +30,5 @@ smart_home/
 │       ├── public/
 │       ├── Dockerfile
 │       └── package.json
-├── scripts/                # 開発・運用補助スクリプト（API署名テスト単体など）
-└── .github/                # CI/CD (Buildxによるマルチアーキビルド等)
+└── scripts/                # 開発・運用補助スクリプト
 ```

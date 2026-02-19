@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-storage
+  labels:
+    app: minio
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # OpenObserve のメトリクスデータ保存用（おうちインフラ向け 10GiB）
+      storage: 10Gi

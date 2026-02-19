@@ -1,0 +1,21 @@
+# Production環境用 OpenObserve パッチ
+# namePrefix: prod- により MinIO サービス名が prod-minio になるため上書き
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openobserve
+spec:
+  template:
+    spec:
+      containers:
+        - name: openobserve
+          env:
+            - name: ZO_S3_SERVER_URL
+              value: "http://prod-minio:9000"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1.5Gi"

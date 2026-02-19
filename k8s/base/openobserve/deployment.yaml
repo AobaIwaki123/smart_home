@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openobserve
+  labels:
+    app: openobserve
+    component: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openobserve
+      component: observability
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: openobserve
+        component: observability
+    spec:
+      securityContext:
+        fsGroup: 10000
+        runAsUser: 10000
+        runAsGroup: 10000
+
+      containers:
+        - name: openobserve
+          # Rustベースの単一バイナリ — ログ・メトリクス・トレース統合受信
+          image: public.ecr.aws/zinclabs/openobserve:v0.14.4
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: http
+              containerPort: 5080
+              protocol: TCP
+            - name: grpc
+              containerPort: 5081
+              protocol: TCP
+
+          env:
+            # 管理者認証情報（Secret から注入）
+            - name: ZO_ROOT_USER_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: openobserve-credentials
+                  key: email
+            - name: ZO_ROOT_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openobserve-credentials
+                  key: password
+
+            # ストレージバックエンド: S3互換（MinIO）
+            - name: ZO_S3_PROVIDER
+              value: "s3"
+            # NOTE: 本番環境では overlays/production の patch で prod- prefix に上書きする
+            - name: ZO_S3_SERVER_URL
+              value: "http://minio:9000"
+            - name: ZO_S3_REGION_NAME
+              value: "us-east-1"
+            - name: ZO_S3_BUCKET_NAME
+              value: "openobserve"
+            # MinIO 認証情報（minio-credentials Secret と共有）
+            - name: ZO_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: access-key
+            - name: ZO_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: secret-key
+
+            # メモリキャッシュ上限（おうちインフラ向け: 256MB）
+            - name: ZO_MEMORY_CACHE_MAX_SIZE
+              value: "256"
+            # 起動モード（single-node）
+            - name: ZO_NODE_ROLE
+              value: "all"
+            - name: RUST_LOG
+              value: "info"
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # リソース制限（ロードマップ推奨: 約1GiB ベースライン + キャッシュ余裕分）
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1.5Gi"
+
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 60

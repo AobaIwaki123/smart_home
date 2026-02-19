@@ -12,7 +12,11 @@ resources:
   - ../../base/namespace
   - ../../base/exporter
   - ../../base/victoria-metrics
+  - ../../base/minio
+  - ../../base/openobserve
   - secret.yaml
+  - minio-secret.yaml
+  - openobserve-secret.yaml
 
 # Production環境用の名前プリフィックス
 namePrefix: prod-
@@ -21,6 +25,14 @@ namePrefix: prod-
 patches:
   - path: deployment-patch.yaml
   - path: victoria-metrics-config-patch.yaml
+  - path: openobserve-patch.yaml
+    target:
+      kind: Deployment
+      name: openobserve
+  - path: vm-remotewrite-patch.yaml
+    target:
+      kind: StatefulSet
+      name: victoria-metrics
 
 # 本番環境用のイメージタグ
 images:

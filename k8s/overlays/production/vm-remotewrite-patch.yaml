@@ -1,0 +1,22 @@
+# VictoriaMetrics → OpenObserve Remote Write パッチ（RFC6902 JSON Patch, YAML形式）
+# prod- プレフィックス後のサービス名で OpenObserve HTTP エンドポイントへ転送する
+
+# Remote Write URL の追加
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: "-remoteWrite.url=http://prod-openobserve:5080/api/default/prometheus/api/v1/write"
+
+# Authorization ヘッダーを Secret から env 経由で差し込む
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: ZO_BASICAUTH
+    valueFrom:
+      secretKeyRef:
+        name: openobserve-credentials
+        key: basicauth
+
+# Basic 認証ヘッダーを Remote Write リクエストに付与
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: "-remoteWrite.headers=Authorization:Basic $(ZO_BASICAUTH)"

@@ -17,7 +17,7 @@ from prometheus_client import Gauge, start_http_server
 POWER_WATT = Gauge(
     "switchbot_power_watts",
     "Current power usage in Watts",
-    ["room", "shelf", "device_name", "device_id", "parent_id"],
+    ["room", "shelf", "device", "device_name", "device_id", "parent_id"],
 )
 
 DEVICE_UP = Gauge(
@@ -76,6 +76,7 @@ async def fetch_device_status(
             POWER_WATT.labels(
                 room=device["room"],
                 shelf=device["shelf"],
+                device=device["device"],
                 device_name=device["name"],
                 device_id=device_id,
                 parent_id=device.get("parent_id", "none"),
@@ -92,6 +93,7 @@ async def fetch_device_status(
             POWER_WATT.remove(
                 device["room"],
                 device["shelf"],
+                device["device"],
                 device["name"],
                 device_id,
                 device.get("parent_id", "none"),
@@ -149,6 +151,7 @@ async def fetch_device_status_mock(device: Dict[str, str]) -> None:
             POWER_WATT.labels(
                 room=device["room"],
                 shelf=device["shelf"],
+                device=device["device"],
                 device_name=device["name"],
                 device_id=device_id,
                 parent_id=device.get("parent_id", "none"),
@@ -167,6 +170,7 @@ async def fetch_device_status_mock(device: Dict[str, str]) -> None:
             POWER_WATT.remove(
                 device["room"],
                 device["shelf"],
+                device["device"],
                 device["name"],
                 device_id,
                 device.get("parent_id", "none"),
@@ -187,6 +191,7 @@ def load_device_config(config_path: str = "devices.json") -> List[Dict[str, str]
             {
                 "id": "V2E012345678",
                 "name": "main_tap",
+                "device": "multi-tap-a",
                 "room": "work",
                 "shelf": "rack_1",
                 "parent_id": "none",
@@ -194,6 +199,7 @@ def load_device_config(config_path: str = "devices.json") -> List[Dict[str, str]
             {
                 "id": "V2E987654321",
                 "name": "server",
+                "device": "pc",
                 "room": "work",
                 "shelf": "rack_1",
                 "parent_id": "V2E012345678",

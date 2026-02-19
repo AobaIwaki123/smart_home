@@ -23,6 +23,7 @@ async def test_fetch_device_status_success(client):
     device = {
         "id": device_id,
         "name": "Server",
+        "device": "pc",
         "room": "Work",
         "shelf": "Rack1",
         "parent_id": "none",
@@ -36,6 +37,7 @@ async def test_fetch_device_status_success(client):
     val = POWER_WATT.labels(
         room="Work",
         shelf="Rack1",
+        device="pc",
         device_name="Server",
         device_id=device_id,
         parent_id="none",
@@ -56,6 +58,7 @@ async def test_fetch_device_status_api_error_500(client):
     device = {
         "id": device_id,
         "name": "Server",
+        "device": "pc",
         "room": "Work",
         "shelf": "Rack1",
         "parent_id": "none",
@@ -88,6 +91,7 @@ async def test_fetch_device_status_missing_weight_field(client):
     device = {
         "id": device_id,
         "name": "Server",
+        "device": "pc",
         "room": "Work",
         "shelf": "Rack1",
         "parent_id": "none",
@@ -100,6 +104,7 @@ async def test_fetch_device_status_missing_weight_field(client):
     val = POWER_WATT.labels(
         room="Work",
         shelf="Rack1",
+        device="pc",
         device_name="Server",
         device_id=device_id,
         parent_id="none",
@@ -127,6 +132,7 @@ async def test_fetch_device_status_invalid_status_code(client):
     device = {
         "id": device_id,
         "name": "Server",
+        "device": "pc",
         "room": "Work",
         "shelf": "Rack1",
         "parent_id": "none",
@@ -154,6 +160,7 @@ async def test_fetch_device_status_timeout(client):
     device = {
         "id": device_id,
         "name": "Server",
+        "device": "pc",
         "room": "Work",
         "shelf": "Rack1",
         "parent_id": "none",
@@ -189,6 +196,7 @@ async def test_fetch_device_status_rate_limit_header(client):
     device = {
         "id": device_id,
         "name": "Server",
+        "device": "pc",
         "room": "Work",
         "shelf": "Rack1",
         "parent_id": "none",
@@ -211,6 +219,7 @@ async def test_fetch_device_status_cleans_up_stale_metrics(client):
     device = {
         "id": device_id,
         "name": "Server",
+        "device": "pc",
         "room": "Work",
         "shelf": "Rack1",
         "parent_id": "none",
@@ -234,6 +243,7 @@ async def test_fetch_device_status_cleans_up_stale_metrics(client):
     val = POWER_WATT.labels(
         room="Work",
         shelf="Rack1",
+        device="pc",
         device_name="Server",
         device_id=device_id,
         parent_id="none",
@@ -257,6 +267,7 @@ async def test_fetch_device_status_cleans_up_stale_metrics(client):
         stale_val = POWER_WATT.labels(
             room="Work",
             shelf="Rack1",
+            device="pc",
             device_name="Server",
             device_id=device_id,
             parent_id="none",

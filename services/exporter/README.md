@@ -30,7 +30,8 @@
 * `house`: 設置された建物（例: `myhome`）
 * `room`: 設置された部屋（例: `work_room`）
 * `shelf`: 設置された棚・区画（例: `rack_1`）
-* `device_name`: デバイスの論理名（例: `main_server`）
+* `device`: 接続されている機器（例: `pc`, `multi-tap-a`）
+* `device_name`: プラグの論理名（SwitchBot デバイス名、例: `プラグミニ_da`）
 * `device_id`: デバイスの物理固有ID（例: MACアドレス）
 * `source`: データ取得ソース（例: `cloud`, `ble`, `mock`）
 

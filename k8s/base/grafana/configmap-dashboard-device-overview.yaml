@@ -134,8 +134,8 @@ data:
                   "room":        { "operation": "groupby",   "aggregations": [] },
                   "shelf":       { "operation": "groupby",   "aggregations": [] },
                   "device":      { "operation": "groupby",   "aggregations": [] },
-                  "Value #A":    { "operation": "aggregate", "aggregations": ["lastNotNull"] },
-                  "Value #B":    { "operation": "aggregate", "aggregations": ["lastNotNull"] }
+                  "power":       { "operation": "aggregate", "aggregations": ["lastNotNull"] },
+                  "up":          { "operation": "aggregate", "aggregations": ["lastNotNull"] }
                 }
               }
             },
@@ -144,8 +144,8 @@ data:
               "options": {
                 "renameByName": {
                   "device_name": "name",
-                  "Value #A (lastNotNull)": "Power (W)",
-                  "Value #B (lastNotNull)": "state"
+                  "power (lastNotNull)": "Power (W)",
+                  "up (lastNotNull)": "state"
                 },
                 "indexByName": {
                   "device_id": 0,
@@ -153,8 +153,8 @@ data:
                   "room": 2,
                   "shelf": 3,
                   "device": 4,
-                  "Value #B (lastNotNull)": 5,
-                  "Value #A (lastNotNull)": 6
+                  "up (lastNotNull)": 5,
+                  "power (lastNotNull)": 6
                 }
               }
             }
@@ -164,13 +164,13 @@ data:
               "expr": "switchbot_power_watts{job=~\"$job\"}",
               "instant": true,
               "refId": "A",
-              "legendFormat": "{{device_id}}"
+              "legendFormat": "power"
             },
             {
               "expr": "switchbot_device_up{job=~\"$job\"}",
               "instant": true,
               "refId": "B",
-              "legendFormat": "{{device_id}}"
+              "legendFormat": "up"
             }
           ],
           "datasource": { "type": "prometheus", "uid": "victoriametrics" }

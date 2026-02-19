@@ -126,12 +126,26 @@ data:
             { "id": "labelsToFields", "options": { "mode": "columns" } },
             { "id": "merge", "options": {} },
             {
+              "id": "groupBy",
+              "options": {
+                "fields": {
+                  "device_id":   { "operation": "groupby",   "aggregations": [] },
+                  "device_name": { "operation": "groupby",   "aggregations": [] },
+                  "room":        { "operation": "groupby",   "aggregations": [] },
+                  "shelf":       { "operation": "groupby",   "aggregations": [] },
+                  "device":      { "operation": "groupby",   "aggregations": [] },
+                  "Value #A":    { "operation": "aggregate", "aggregations": ["lastNotNull"] },
+                  "Value #B":    { "operation": "aggregate", "aggregations": ["lastNotNull"] }
+                }
+              }
+            },
+            {
               "id": "organize",
               "options": {
                 "renameByName": {
                   "device_name": "name",
-                  "Value #A": "Power (W)",
-                  "Value #B": "state"
+                  "Value #A (lastNotNull)": "Power (W)",
+                  "Value #B (lastNotNull)": "state"
                 },
                 "indexByName": {
                   "device_id": 0,
@@ -139,12 +153,8 @@ data:
                   "room": 2,
                   "shelf": 3,
                   "device": 4,
-                  "Value #B": 5,
-                  "Value #A": 6,
-                  "parent_id": 7,
-                  "job": 8,
-                  "instance": 9,
-                  "Time": 10
+                  "Value #B (lastNotNull)": 5,
+                  "Value #A (lastNotNull)": 6
                 }
               }
             }

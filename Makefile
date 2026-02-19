@@ -99,7 +99,7 @@ k8s-secret-generate: ## Generate K8s secret from .env
 	@source .env && \
 	ZO_ROOT_USER_EMAIL_BASE64=$$(printf '%s' "$$ZO_ROOT_USER_EMAIL" | base64) && \
 	ZO_ROOT_USER_PASSWORD_BASE64=$$(printf '%s' "$$ZO_ROOT_USER_PASSWORD" | base64) && \
-	ZO_BASICAUTH_BASE64=$$(printf '%s:%s' "$$ZO_ROOT_USER_EMAIL" "$$ZO_ROOT_USER_PASSWORD" | base64) && \
+	ZO_BASICAUTH_BASE64=$$(printf '%s:%s' "$$ZO_ROOT_USER_EMAIL" "$$ZO_ROOT_USER_PASSWORD" | base64 | tr -d '\n' | base64) && \
 	sed -e "s/{{ZO_ROOT_USER_EMAIL_BASE64}}/$$ZO_ROOT_USER_EMAIL_BASE64/g" \
 	    -e "s/{{ZO_ROOT_USER_PASSWORD_BASE64}}/$$ZO_ROOT_USER_PASSWORD_BASE64/g" \
 	    -e "s/{{ZO_BASICAUTH_BASE64}}/$$ZO_BASICAUTH_BASE64/g" \

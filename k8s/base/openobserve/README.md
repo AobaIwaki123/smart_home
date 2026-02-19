@@ -80,12 +80,75 @@ make k8s-deploy-production
 
 ### **動作確認**
 
-WEB UIへのアクセス：
+#### WEB UI へのアクセス
+
+> ⚠️ `namePrefix: prod-` が付くため、サービス名は `prod-openobserve` です。
 
 ```bash
 # ポートフォワードの開始
-kubectl port-forward -n smart-home svc/openobserve 5080:5080
+kubectl port-forward -n smart-home svc/prod-openobserve 5080:5080
 ```
 
-ブラウザで `http://localhost:5080` にアクセスしてください。
-※ 初回ログイン情報は Kubernetes の Secret (`openobserve-credentials`) で管理されています。
+ブラウザで `http://localhost:5080` にアクセスしてください。  
+初回ログイン情報は Kubernetes の Secret (`prod-openobserve-credentials`) で管理されています。
+
+#### メトリクスの確認方法
+
+vmagent が OpenObserve に Prometheus Remote Write でメトリクスを送信しています。
+
+**1. ログでデータ受信を確認する**
+
+```bash
+kubectl logs -n smart-home deployment/prod-vmagent --tail=20
+kubectl logs -n smart-home deployment/prod-openobserve --tail=20 | grep "v1/write"
+# → "200" が返っていれば正常にデータが届いています
+# → "401" が続く場合は basicauth の修正が必要です（下記「トラブルシューティング」参照）
+```
+
+**2. OpenObserve UI でメトリクスを確認する**
+
+1. `http://localhost:5080` にアクセスしてログイン
+2. 左メニューの **Metrics** を選択
+3. Stream に `default` を選択するとメトリクス一覧が表示される
+4. SwitchBot のメトリクス例:
+   - `switchbot_power_watts` — デバイスの消費電力 (W)
+   - `switchbot_voltage_volts` — 電圧 (V)
+   - `switchbot_device_up` — デバイス疎通状態 (1=正常 / 0=異常)
+   - `api_rate_limit_remaining` — SwitchBot API 残りコール数
+
+**3. PromQL でクエリする**
+
+左メニューの **Metrics** → **Query** タブで PromQL が使用できます。
+
+```promql
+# 直近の消費電力
+switchbot_power_watts
+
+# デバイス別の消費電力推移（折れ線グラフ）
+rate(switchbot_power_watts[5m])
+
+# API レート制限の残り回数
+api_rate_limit_remaining
+```
+
+---
+
+### **トラブルシューティング**
+
+#### vmagent → OpenObserve への書き込みが 401 になる
+
+OpenObserve への Remote Write は Basic 認証が必要です。  
+vmagent は Secret `prod-openobserve-credentials` の `basicauth` キーを `Authorization: Basic <値>` として送信します。
+
+**`basicauth` の正しい値**:
+
+Kubernetes の `data` フィールドは格納値を base64 デコードして Pod に渡します。  
+そのため `basicauth` には **`base64(base64(email:password))`** を格納する必要があります。
+
+```bash
+# 正しい basicauth 値の生成方法（.env の値を使用）
+source .env
+printf '%s:%s' "$ZO_ROOT_USER_EMAIL" "$ZO_ROOT_USER_PASSWORD" | base64 | tr -d '\n' | base64
+```
+
+Secret 生成は `make k8s-secret-generate` を使えば自動的に正しい値が生成されます。

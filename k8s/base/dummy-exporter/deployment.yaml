@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: dummy-exporter
-          image: dummy-exporter
+          image: ghcr.io/aobaiwaki123/dummy-exporter:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 9100

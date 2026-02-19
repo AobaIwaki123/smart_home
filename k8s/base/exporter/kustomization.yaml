@@ -8,9 +8,10 @@ metadata:
 namespace: smart-home
 
 # 共通のラベルとアノテーション
-commonLabels:
-  app.kubernetes.io/name: switchbot-exporter
-  app.kubernetes.io/part-of: smart-home-monitoring
+labels:
+  - pairs:
+      app.kubernetes.io/name: switchbot-exporter
+      app.kubernetes.io/part-of: smart-home-monitoring
 
 commonAnnotations:
   app.kubernetes.io/version: "1.0.0"

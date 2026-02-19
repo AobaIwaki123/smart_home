@@ -9,6 +9,7 @@ namespace: smart-home
 
 # ベース設定の参照
 resources:
+  - ../../base/namespace
   - ../../base/exporter
   - secret.yaml
 
@@ -16,8 +17,8 @@ resources:
 namePrefix: prod-
 
 # 本番環境用の設定を上書き
-patchesStrategicMerge:
-  - deployment-patch.yaml
+patches:
+  - path: deployment-patch.yaml
 
 # 本番環境用のイメージタグ
 images:

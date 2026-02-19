@@ -9,14 +9,15 @@ namespace: smart-home
 
 # ベース設定の参照
 resources:
+  - ../../base/namespace
   - ../../base/exporter
 
 # Mock環境用の名前プリフィックス
 namePrefix: mock-
 
 # 環境固有の設定を上書き
-patchesStrategicMerge:
-  - deployment-patch.yaml
+patches:
+  - path: deployment-patch.yaml
 
 # Mock環境用のイメージタグ（開発用）
 images:

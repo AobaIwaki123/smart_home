@@ -8,16 +8,17 @@ metadata:
 namespace: smart-home
 
 # 共通のラベルとアノテーション
-commonLabels:
-  app.kubernetes.io/part-of: smart-home-monitoring
-  project: smart-home
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: smart-home-monitoring
+      project: smart-home
 
 commonAnnotations:
   project.kubernetes.io/managed-by: "smart-home-automation"
 
 # ベースリソースの定義
 resources:
-  - namespace.yaml
+  - namespace/
   - exporter/
   - victoria-metrics/
   # 将来的に追加されるであろう他のコンポーネント

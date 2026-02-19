@@ -11,7 +11,7 @@ namespace: smart-home
 resources:
   - ../../base/namespace
   - ../../base/exporter
-  - ../../base/victoria-metrics
+  - ../../base/vmagent
   - ../../base/minio
   - ../../base/openobserve
   - secret.yaml
@@ -24,15 +24,18 @@ namePrefix: prod-
 # 本番環境用の設定を上書き
 patches:
   - path: deployment-patch.yaml
-  - path: victoria-metrics-config-patch.yaml
+  - path: vmagent-config-patch.yaml
+    target:
+      kind: ConfigMap
+      name: vmagent-config
+  - path: vmagent-deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: vmagent
   - path: openobserve-patch.yaml
     target:
       kind: Deployment
       name: openobserve
-  - path: vm-remotewrite-patch.yaml
-    target:
-      kind: StatefulSet
-      name: victoria-metrics
 
 # 本番環境用のイメージタグ
 images:

@@ -38,8 +38,6 @@ spec:
             - -retentionPeriod=12
             # メモリ効率の最適化（おうちインフラ向け）
             - -memory.allowedPercent=50
-            # Prometheus互換のAPIを有効化
-            - -promscrape.config=/etc/prometheus/prometheus.yml
             # VictoriaMetricsの独自機能を有効化
             - -search.latencyOffset=15s
             # ログレベル
@@ -83,10 +81,6 @@ spec:
             - name: storage
               mountPath: /victoria-metrics-data
               subPath: data
-            - name: config
-              mountPath: /etc/prometheus/prometheus.yml
-              subPath: prometheus.yml
-              readOnly: true
 
           # 環境変数（必要に応じて）
           env:
@@ -98,10 +92,6 @@ spec:
         - name: storage
           persistentVolumeClaim:
             claimName: victoria-metrics-storage
-        - name: config
-          configMap:
-            name: victoria-metrics-config
-            defaultMode: 420
 
       # ポッドのアフィニティとトポロジー設定（高可用性のため）
       affinity:

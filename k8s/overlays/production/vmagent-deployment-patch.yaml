@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmagent
+spec:
+  template:
+    spec:
+      containers:
+        - name: vmagent
+          args:
+            - -promscrape.config=/etc/prometheus/prometheus.yml
+            # namePrefix: prod- により prod-openobserve サービスへ送信
+            - -remoteWrite.url=http://prod-openobserve:5080/api/default/prometheus/api/v1/write
+            - "-remoteWrite.headers=Authorization: Basic $(ZO_BASICAUTH)"
+            - -remoteWrite.tmpDataPath=/tmp/vmagent-remotewrite
+            - -httpListenAddr=0.0.0.0:8429
+            - -loggerLevel=INFO

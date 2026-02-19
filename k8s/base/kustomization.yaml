@@ -20,7 +20,7 @@ commonAnnotations:
 resources:
   - namespace/
   - exporter/
-  - victoria-metrics/
+  - vmagent/
   - minio/
   - openobserve/
   # 将来的に追加されるであろう他のコンポーネント

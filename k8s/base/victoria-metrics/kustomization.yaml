@@ -4,10 +4,9 @@ kind: Kustomization
 metadata:
   name: victoria-metrics
 
-# VictoriaMetricsに関連するすべてのリソース
+# VictoriaMetricsに関連するすべてのリソース（scrapeはvmagentに移管）
 resources:
   - persistentvolumeclaim.yaml
-  - configmap.yaml
   - statefulset.yaml
   - service.yaml
 

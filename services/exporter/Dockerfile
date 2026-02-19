@@ -26,6 +26,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # ソースコードのコピー
 COPY src/ ./src/
 
+# ユーティリティスクリプトのコピー
+COPY scripts/ ./scripts/
+
 # デバイス設定ファイルのコピー
 COPY devices.json .
 

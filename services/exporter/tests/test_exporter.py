@@ -1,6 +1,6 @@
 import pytest
 import respx
-from httpx import Response, TimeoutException, HTTPError
+from httpx import Response, TimeoutException
 from src.main import fetch_device_status, POWER_WATT, DEVICE_UP, API_REMAINING
 
 

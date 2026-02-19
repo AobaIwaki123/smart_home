@@ -2,6 +2,42 @@ pip:
 	pip install -r requirements.dev.txt
 
 # =============================================================================
+# Real Device Test Commands
+# =============================================================================
+
+# 実機の deviceId を確認するスクリプトを実行（要: SWITCHBOT_TOKEN / SWITCHBOT_SECRET）
+list-devices:
+	@if [ -z "$$SWITCHBOT_TOKEN" ] || [ -z "$$SWITCHBOT_SECRET" ]; then \
+		echo "ERROR: 環境変数が未設定です。以下を実行してください:"; \
+		echo "  export SWITCHBOT_TOKEN='your_token'"; \
+		echo "  export SWITCHBOT_SECRET='your_secret'"; \
+		exit 1; \
+	fi
+	cd services/exporter && \
+	docker build -q -t switchbot-exporter:latest . && \
+	docker run --rm \
+		-e SWITCHBOT_TOKEN="$$SWITCHBOT_TOKEN" \
+		-e SWITCHBOT_SECRET="$$SWITCHBOT_SECRET" \
+		switchbot-exporter:latest \
+		python scripts/list_devices.py
+
+# 実機モードで Exporter を起動（要: SWITCHBOT_TOKEN / SWITCHBOT_SECRET）
+run-real:
+	@if [ -z "$$SWITCHBOT_TOKEN" ] || [ -z "$$SWITCHBOT_SECRET" ]; then \
+		echo "ERROR: 環境変数が未設定です。以下を実行してください:"; \
+		echo "  export SWITCHBOT_TOKEN='your_token'"; \
+		echo "  export SWITCHBOT_SECRET='your_secret'"; \
+		exit 1; \
+	fi
+	cd services/exporter && \
+	SWITCHBOT_TOKEN="$$SWITCHBOT_TOKEN" \
+	SWITCHBOT_SECRET="$$SWITCHBOT_SECRET" \
+	USE_MOCK=false \
+	COLLECTION_INTERVAL=10 \
+	LOG_LEVEL=INFO \
+	docker compose up
+
+# =============================================================================
 # Docker Commands for SwitchBot Exporter
 # =============================================================================
 
@@ -79,4 +115,4 @@ k8s-deploy-production: k8s-secret-generate
 	@echo "✅ Production environment deployed!"
 	@echo "📊 Check status: kubectl get pods -n smart-home"
 
-.PHONY: pip docker-build-exporter docker-run-exporter docker-dev docker-test-exporter docker-down docker-buildx-exporter docker-logs k8s-secret-generate k8s-clean k8s-deploy-mock k8s-deploy-production
+.PHONY: pip list-devices run-real docker-build-exporter docker-run-exporter docker-dev docker-test-exporter docker-down docker-buildx-exporter docker-logs k8s-secret-generate k8s-clean k8s-deploy-mock k8s-deploy-production

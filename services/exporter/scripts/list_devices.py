@@ -36,7 +36,7 @@ from src.main import generate_sign
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 
-async def fetch_device_list(token: str, secret: str) -> dict:
+async def fetch_device_list(token: str, secret: str) -> tuple[dict, dict]:
     sign, t, nonce = generate_sign(token, secret)
     headers = {
         "Authorization": token,
@@ -52,7 +52,12 @@ async def fetch_device_list(token: str, secret: str) -> dict:
             timeout=15.0,
         )
         resp.raise_for_status()
-        return resp.json()
+        rate_info = {
+            "limit": resp.headers.get("x-ratelimit-limit", "N/A"),
+            "remaining": resp.headers.get("x-ratelimit-remaining", "N/A"),
+            "reset": resp.headers.get("x-ratelimit-reset", "N/A"),
+        }
+        return resp.json(), rate_info
 
 
 def print_devices(data: dict) -> None:
@@ -135,13 +140,18 @@ async def main() -> None:
         sys.exit(1)
 
     print("SwitchBot API へ接続中...", end="", flush=True)
-    data = await fetch_device_list(token, secret)
+    data, rate_info = await fetch_device_list(token, secret)
     print(" OK")
 
     status_code = data.get("statusCode")
     if status_code != 100:
         print(f"API Error (statusCode={status_code}): {data.get('message')}")
         sys.exit(1)
+
+    print("\n[API Rate Limit]")
+    print(f"  Limit:     {rate_info['limit']} calls/day")
+    print(f"  Remaining: {rate_info['remaining']}")
+    print(f"  Reset:     {rate_info['reset']} (epoch ms)")
 
     print_devices(data)
 

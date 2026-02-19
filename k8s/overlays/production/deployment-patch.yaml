@@ -9,9 +9,6 @@ spec:
         - name: exporter
           imagePullPolicy: Always
           env:
-            # 本番モード（実際のSwitchBot APIを使用）
-            - name: USE_MOCK
-              value: "false"
             # 本番用ログレベル
             - name: LOG_LEVEL
               value: "INFO"

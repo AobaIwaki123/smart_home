@@ -42,7 +42,6 @@ run-real: ## Run Exporter in real mode (Requires SWITCHBOT_TOKEN/SECRET)
 	cd services/exporter && \
 	SWITCHBOT_TOKEN="$$SWITCHBOT_TOKEN" \
 	SWITCHBOT_SECRET="$$SWITCHBOT_SECRET" \
-	USE_MOCK=false \
 	COLLECTION_INTERVAL=10 \
 	LOG_LEVEL=INFO \
 	docker compose up --build
@@ -73,6 +72,20 @@ docker-buildx-exporter: ## Multi-arch build (for production)
 
 docker-logs: ## Monitor logs
 	cd services/exporter && docker compose logs -f switchbot-exporter
+
+## Docker Commands for Dummy Exporter ##
+
+docker-build-dummy: ## Build dummy-exporter Docker image
+	cd services/dummy-exporter && docker build -t dummy-exporter:latest .
+
+docker-run-dummy: ## Run dummy-exporter container (port 9100)
+	cd services/dummy-exporter && docker compose up
+
+docker-down-dummy: ## Stop dummy-exporter container
+	cd services/dummy-exporter && docker compose down
+
+docker-logs-dummy: ## Monitor dummy-exporter logs
+	cd services/dummy-exporter && docker compose logs -f dummy-exporter
 
 ## Kubernetes Commands ##
 
@@ -112,4 +125,4 @@ k8s-deploy-production: k8s-secret-generate ## Deploy production environment (aut
 	@echo "✅ Production environment deployed!"
 	@echo "📊 Check status: kubectl get pods -n smart-home"
 
-.PHONY: pip list-devices run-real docker-build-exporter docker-run-exporter docker-dev docker-test-exporter docker-down docker-buildx-exporter docker-logs k8s-secret-generate k8s-secret-clean k8s-deploy-mock k8s-deploy-production
+.PHONY: pip list-devices run-real docker-build-exporter docker-run-exporter docker-dev docker-test-exporter docker-down docker-buildx-exporter docker-logs docker-build-dummy docker-run-dummy docker-down-dummy docker-logs-dummy k8s-secret-generate k8s-secret-clean k8s-deploy-mock k8s-deploy-production

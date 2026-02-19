@@ -11,6 +11,7 @@ namespace: smart-home
 resources:
   - ../../base/namespace
   - ../../base/exporter
+  - ../../base/dummy-exporter
   - ../../base/victoriametrics
   - ../../base/grafana
   - secret.yaml
@@ -34,4 +35,7 @@ patches:
 images:
   - name: switchbot-exporter
     newName: ghcr.io/aobaiwaki123/switchbot-exporter
+    newTag: latest
+  - name: dummy-exporter
+    newName: ghcr.io/aobaiwaki123/dummy-exporter
     newTag: latest

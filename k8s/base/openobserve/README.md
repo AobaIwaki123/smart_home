@@ -1,4 +1,4 @@
-# OpenObserve - 可観測性プラットフォーム
+# OpenObserve (O2) - 可観測性プラットフォーム
 
 スマートホーム監視システムの「可視化・分析層」を担うOpenObserveのKubernetesデプロイメント。
 

@@ -11,6 +11,7 @@ resources:
   - configmap-dashboard-device-overview.yaml
   - deployment.yaml
   - service.yaml
+  - pvc.yaml
 
 labels:
   - includeSelectors: true

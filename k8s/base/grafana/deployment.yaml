@@ -45,6 +45,8 @@ spec:
               value: "http://localhost:3000"
 
           volumeMounts:
+            - name: grafana-data
+              mountPath: /var/lib/grafana
             - name: datasources
               mountPath: /etc/grafana/provisioning/datasources
             - name: dashboard-provisioner
@@ -78,6 +80,9 @@ spec:
               memory: "256Mi"
 
       volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: grafana-data
         - name: datasources
           configMap:
             name: grafana-datasources

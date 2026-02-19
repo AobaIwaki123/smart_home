@@ -16,7 +16,7 @@ import random
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import Response, JSONResponse
 from prometheus_client import (
     CollectorRegistry,
@@ -362,6 +362,225 @@ def update_attrs(device_id: str, req: UpdateAttrsRequest) -> JSONResponse:
     return JSONResponse(
         {"message": "updated", "device_id": device_id, "attrs": rec["attrs"]}
     )
+
+
+# ---------------------------------------------------------------------------
+# ステータス一覧
+# ---------------------------------------------------------------------------
+
+_STATUS_HEADER = (
+    "╔══════════════╦──────────────────────┦──────────┦────────┦────────────┦"
+    "────────────╦───────╦────────────────╗\n"
+    "║ device_id    ║ name                 ║ room     ║ shelf  ║ device     ║"
+    " watts      ║ up    ║ jitter         ║\n"
+    "╠══════════════╪──────────────────────╪──────────╪────────╪────────────╪"
+    "────────────╪───────╪────────────────╣\n"
+)
+_STATUS_FOOTER = (
+    "╚══════════════╧──────────────────────╧──────────╧────────╧────────────╧"
+    "────────────╧───────╧────────────────╝\n"
+)
+
+
+def _status_row(rec: dict[str, Any]) -> str:
+    attrs = rec["attrs"]
+    did = rec["device_id"][:12].ljust(12)
+    name = str(attrs.get("name", ""))[:20].ljust(20)
+    room = str(attrs.get("room", ""))[:8].ljust(8)
+    shelf = str(attrs.get("shelf", ""))[:6].ljust(6)
+    dev = str(attrs.get("device", ""))[:10].ljust(10)
+    watts = f"{rec['power_watts']:.1f}W".rjust(10)
+    up = "UP  ✓" if rec["up"] else "DOWN ✗"
+    if rec["auto_jitter"]:
+        jitter = f"{rec['jitter_min']:.0f}-{rec['jitter_max']:.0f}W (auto)"
+    else:
+        jitter = "fixed"
+    jitter = jitter[:14].ljust(14)
+    return (
+        f"║ {did} ║ {name} ║ {room} ║ {shelf} ║ {dev} ║ {watts} ║ {up} ║ {jitter} ║\n"
+    )
+
+
+@app.get(
+    "/status", summary="デバイスステータス一覧（テキスト表）", response_class=Response
+)
+def get_status() -> Response:
+    """
+    登録済みデバイスを ASCII テーブルで返す。curl でそのまま確認できる。
+
+    ```bash
+    curl http://localhost:9100/status
+    ```
+    """
+    if not _devices:
+        body = 'No devices registered.\n\nAdd a device:\n  curl -X POST http://localhost:9100/devices -H \'Content-Type: application/json\' -d \'{"device_id":"DUMMY001","attrs":{"name":"pc","room":"work","shelf":"desk","device":"pc"},"power_watts":100.0}\'\n'
+        return Response(content=body, media_type="text/plain; charset=utf-8")
+
+    rows = "".join(_status_row(rec) for rec in _devices.values())
+    up_count = sum(1 for r in _devices.values() if r["up"])
+    total_watts = sum(r["power_watts"] for r in _devices.values() if r["up"])
+    summary = (
+        f"\n  devices: {len(_devices)}  |  up: {up_count}  "
+        f"|  down: {len(_devices) - up_count}  |  total power: {total_watts:.1f}W\n"
+    )
+    body = _STATUS_HEADER + rows + _STATUS_FOOTER + summary
+    return Response(content=body, media_type="text/plain; charset=utf-8")
+
+
+# ---------------------------------------------------------------------------
+# HTML ミニダッシュボード
+# ---------------------------------------------------------------------------
+
+_HTML_TEMPLATE = """\
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dummy-exporter dashboard</title>
+  <style>
+    body {{ font-family: monospace; background:#111; color:#ccc; padding:1.5rem; }}
+    h1   {{ color:#7df; margin-bottom:.4rem; }}
+    .sub {{ color:#666; font-size:.85rem; margin-bottom:1.5rem; }}
+    table{{ border-collapse:collapse; width:100%; }}
+    th   {{ background:#222; color:#7df; padding:.4rem .7rem; text-align:left; border-bottom:1px solid #333; }}
+    td   {{ padding:.35rem .7rem; border-bottom:1px solid #222; }}
+    tr:hover td {{ background:#1a1a2e; }}
+    .up  {{ color:#4f4; }}
+    .dn  {{ color:#f44; }}
+    .tag {{ background:#222; color:#aaa; font-size:.75rem; padding:.1rem .35rem; border-radius:3px; }}
+    details {{ margin-top:1.5rem; }}
+    summary  {{ cursor:pointer; color:#7df; }}
+    pre  {{ background:#1a1a1a; padding:1rem; border-radius:4px; overflow-x:auto; color:#9f9; font-size:.8rem; }}
+    .stat{{ display:inline-block; background:#1e1e1e; padding:.3rem .8rem; border-radius:4px; margin-right:.6rem; color:#ccc; }}
+    .stat span {{ color:#7df; font-size:1.1rem; }}
+  </style>
+</head>
+<body>
+  <h1>dummy-exporter</h1>
+  <div class="sub">Grafana test data generator &nbsp;|&nbsp; jitter interval: {jitter_interval}s</div>
+
+  <div style="margin-bottom:1rem">
+    <div class="stat">devices <span>{total}</span></div>
+    <div class="stat">up <span class="up">{up_count}</span></div>
+    <div class="stat">down <span class="dn">{dn_count}</span></div>
+    <div class="stat">total power <span>{total_watts:.1f} W</span></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>device_id</th><th>name</th><th>room</th><th>shelf</th>
+        <th>device</th><th>state</th><th>power (W)</th><th>jitter</th><th>extra attrs</th>
+      </tr>
+    </thead>
+    <tbody>
+{rows}
+    </tbody>
+  </table>
+
+  <details>
+    <summary>curl チートシート</summary>
+    <pre>{cheatsheet}</pre>
+  </details>
+</body>
+</html>
+"""
+
+_KNOWN_LABEL_KEYS = {"name", "room", "shelf", "device", "parent_id"}
+
+
+def _html_row(rec: dict[str, Any]) -> str:
+    attrs = rec["attrs"]
+    did = rec["device_id"]
+    name = attrs.get("name", "")
+    room = attrs.get("room", "")
+    shelf = attrs.get("shelf", "")
+    device = attrs.get("device", "")
+    state = (
+        '<span class="up">UP ✓</span>'
+        if rec["up"]
+        else '<span class="dn">DOWN ✗</span>'
+    )
+    watts = f"{rec['power_watts']:.1f}"
+    if rec["auto_jitter"]:
+        jitter = f"{rec['jitter_min']:.0f}–{rec['jitter_max']:.0f} (auto)"
+    else:
+        jitter = "fixed"
+    extra = " ".join(
+        f'<span class="tag">{k}={v}</span>'
+        for k, v in attrs.items()
+        if k not in _KNOWN_LABEL_KEYS
+    )
+    return (
+        f"      <tr>"
+        f"<td>{did}</td><td>{name}</td><td>{room}</td><td>{shelf}</td>"
+        f"<td>{device}</td><td>{state}</td><td>{watts}</td>"
+        f"<td>{jitter}</td><td>{extra}</td>"
+        f"</tr>\n"
+    )
+
+
+def _build_cheatsheet(base: str) -> str:
+    lines = [
+        f"# デバイス追加",
+        f"curl -X POST {base}/devices \\",
+        f"  -H 'Content-Type: application/json' \\",
+        f'  -d \'{{"device_id":"DUMMY001","attrs":{{"name":"pc","room":"work","shelf":"desk","device":"pc"}},"power_watts":120.0,"auto_jitter":true,"jitter_min":80,"jitter_max":250}}\'',
+        "",
+        "# デバイス削除",
+        f"curl -X DELETE {base}/devices/{{device_id}}",
+        "",
+        "# 電力値を固定 (ジッター停止)",
+        f"curl -X PUT {base}/devices/{{device_id}}/power \\",
+        f"  -H 'Content-Type: application/json' \\",
+        f'  -d \'{{"watts":250.0,"auto_jitter":false}}\'',
+        "",
+        "# デバイスを DOWN にする",
+        f"curl -X PUT {base}/devices/{{device_id}}/state \\",
+        f"  -H 'Content-Type: application/json' \\",
+        f"  -d '{{\"up\":false}}'",
+        "",
+        "# 属性を編集",
+        f"curl -X PATCH {base}/devices/{{device_id}}/attrs \\",
+        f"  -H 'Content-Type: application/json' \\",
+        f'  -d \'{{"room":"bedroom","custom_tag":"any-value"}}\'',
+        "",
+        "# ステータス確認 (テキスト表)",
+        f"curl {base}/status",
+        "",
+        "# Prometheus メトリクス確認",
+        f"curl {base}/metrics | grep switchbot",
+    ]
+    return "\n".join(lines)
+
+
+@app.get("/", summary="HTML ミニダッシュボード", response_class=Response)
+def dashboard(request: Request) -> Response:
+    """
+    ブラウザで開くと現在の全デバイス状態を表で表示し、
+    curl チートシートも確認できる。
+    """
+    rows_html = (
+        "".join(_html_row(r) for r in _devices.values())
+        if _devices
+        else '      <tr><td colspan="9" style="color:#666;text-align:center">No devices registered</td></tr>\n'
+    )
+
+    up_count = sum(1 for r in _devices.values() if r["up"])
+    total_watts = sum(r["power_watts"] for r in _devices.values() if r["up"])
+    base = str(request.base_url).rstrip("/")
+
+    html = _HTML_TEMPLATE.format(
+        jitter_interval=JITTER_INTERVAL,
+        total=len(_devices),
+        up_count=up_count,
+        dn_count=len(_devices) - up_count,
+        total_watts=total_watts,
+        rows=rows_html,
+        cheatsheet=_build_cheatsheet(base),
+    )
+    return Response(content=html, media_type="text/html; charset=utf-8")
 
 
 # ---------------------------------------------------------------------------

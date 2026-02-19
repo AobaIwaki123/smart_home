@@ -225,8 +225,8 @@ async def collect_metrics(
         await asyncio.gather(*tasks)
     else:
         # 実際のAPI環境
-        token = os.getenv("SWITCHBOT_TOKEN")
-        secret = os.getenv("SWITCHBOT_SECRET")
+        token = (os.getenv("SWITCHBOT_TOKEN") or "").strip()
+        secret = (os.getenv("SWITCHBOT_SECRET") or "").strip()
 
         if not token or not secret:
             raise ValueError("SWITCHBOT_TOKEN and SWITCHBOT_SECRET must be set")

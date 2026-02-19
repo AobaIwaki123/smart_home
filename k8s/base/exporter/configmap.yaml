@@ -9,24 +9,19 @@ data:
     devices.json: |
         [
             {
-                "id": "V2E012345678",
-                "name": "main_tap",
+                "id": "588C81B65FDA",
+                "name": "プラグミニ_da",
+                "device": "pc",
                 "room": "work",
-                "shelf": "rack_1",
-                "parent_id": "none"
+                "shelf": "desk",
+                "parent_id": "9888E0C67E5E"
             },
             {
-                "id": "V2E987654321",
-                "name": "server",
+                "id": "9888E0C67E5E",
+                "name": "プラグミニ_5e",
+                "device": "multi-tap-a",
                 "room": "work",
-                "shelf": "rack_1",
-                "parent_id": "V2E012345678"
-            },
-            {
-                "id": "V2E555666777",
-                "name": "router",
-                "room": "living",
-                "shelf": "tv_board",
+                "shelf": "desk",
                 "parent_id": "none"
             }
         ]

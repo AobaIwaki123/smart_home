@@ -89,8 +89,8 @@ k8s-secret-generate:
 		exit 1; \
 	fi
 	@source k8s/.env && \
-	SWITCHBOT_TOKEN_BASE64=$$(echo -n "$$SWITCHBOT_TOKEN" | base64) && \
-	SWITCHBOT_SECRET_BASE64=$$(echo -n "$$SWITCHBOT_SECRET" | base64) && \
+	SWITCHBOT_TOKEN_BASE64=$$(printf '%s' "$$SWITCHBOT_TOKEN" | base64) && \
+	SWITCHBOT_SECRET_BASE64=$$(printf '%s' "$$SWITCHBOT_SECRET" | base64) && \
 	sed -e "s/{{SWITCHBOT_TOKEN_BASE64}}/$$SWITCHBOT_TOKEN_BASE64/g" \
 	    -e "s/{{SWITCHBOT_SECRET_BASE64}}/$$SWITCHBOT_SECRET_BASE64/g" \
 	    k8s/overlays/production/secret.template.yaml > k8s/overlays/production/secret.yaml

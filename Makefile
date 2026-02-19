@@ -112,9 +112,11 @@ k8s-secret-generate:
 	@echo "🚀 You can now run: kubectl apply -k k8s/overlays/production"
 
 # K8s環境のクリーンアップ（secret.yamlも削除）
-k8s-clean:
+k8s-secret-clean:
 	@echo "🧹 Cleaning up generated Kubernetes files..."
 	@rm -f k8s/overlays/production/secret.yaml
+	@rm -f k8s/overlays/production/minio-secret.yaml
+	@rm -f k8s/overlays/production/openobserve-secret.yaml
 	@echo "✅ Cleanup completed!"
 
 # モック環境のデプロイ

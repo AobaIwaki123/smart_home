@@ -35,7 +35,7 @@ spec:
             # HTTP APIのリッスンアドレス
             - -httpListenAddr=0.0.0.0:8428
             # データ保持期間の設定（1年間）
-            - -retentionPeriod=12m
+            - -retentionPeriod=12
             # メモリ効率の最適化（おうちインフラ向け）
             - -memory.allowedPercent=50
             # Prometheus互換のAPIを有効化

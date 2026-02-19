@@ -87,6 +87,7 @@ async def fetch_device_status(
             raise ValueError(f"API Error: {data.get('message')}")
 
     except Exception as e:
+        logging.error(f"Device {device_id} fetch failed: {e}")
         # 失敗時は stale (古い値が残るの) を防ぐためにメトリクスを削除
         DEVICE_UP.labels(device_id=device_id).set(0)
         try:

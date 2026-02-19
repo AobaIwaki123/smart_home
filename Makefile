@@ -37,7 +37,7 @@ run-real:
 	USE_MOCK=false \
 	COLLECTION_INTERVAL=10 \
 	LOG_LEVEL=INFO \
-	docker compose up
+	docker compose up --build
 
 # =============================================================================
 # Docker Commands for SwitchBot Exporter

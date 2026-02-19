@@ -61,10 +61,16 @@ async def fetch_device_status(
         url = f"https://api.switch-bot.com/v1.1/devices/{device_id}/status"
         resp = await client.get(url, headers=headers, timeout=10.0)
 
-        # API制限の更新
+        # API制限の更新（copilot-instructions.md 準拠）
         remaining = resp.headers.get("x-ratelimit-remaining")
-        if remaining:
+        if remaining is not None:
             API_REMAINING.set(int(remaining))
+            if int(remaining) <= 100:
+                logging.warning(f"API rate limit low: {remaining} calls remaining")
+        else:
+            logging.warning(
+                f"Device {device_id}: x-ratelimit-remaining header not found"
+            )
 
         resp.raise_for_status()
         data = resp.json()
@@ -83,6 +89,7 @@ async def fetch_device_status(
             ).set(wattage)
 
             DEVICE_UP.labels(device_id=device_id).set(1)
+            logging.info(f"Device {device_id}: power={wattage}W, remaining={remaining}")
         else:
             raise ValueError(f"API Error: {data.get('message')}")
 

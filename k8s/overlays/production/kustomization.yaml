@@ -9,11 +9,11 @@ namespace: smart-home
 
 # ベース設定の参照
 resources:
-  - ../../base/namespace
-  - ../../base/exporter
-  - ../../base/dummy-exporter
-  - ../../base/victoriametrics
-  - ../../base/grafana
+- ../../base/namespace
+- ../../base/exporter
+- ../../base/dummy-exporter
+- ../../base/victoriametrics
+- ../../base/grafana
   # - secret.yaml
 
 # Production環境用の名前プリフィックス
@@ -21,21 +21,21 @@ namePrefix: prod-
 
 # 本番環境用の設定を上書き
 patches:
-  - path: deployment-patch.yaml
-  - path: victoriametrics-config-patch.yaml
-    target:
-      kind: ConfigMap
-      name: victoria-metrics-scrape-config
-  - path: grafana-datasource-patch.yaml
-    target:
-      kind: ConfigMap
-      name: grafana-datasources
+- path: deployment-patch.yaml
+- path: victoriametrics-config-patch.yaml
+  target:
+    kind: ConfigMap
+    name: victoria-metrics-scrape-config
+- path: grafana-datasource-patch.yaml
+  target:
+    kind: ConfigMap
+    name: grafana-datasources
 
 # 本番環境用のイメージタグ
 images:
-  - name: switchbot-exporter
-    newName: ghcr.io/aobaiwaki123/switchbot-exporter
-    newTag: latest
-  - name: dummy-exporter
-    newName: ghcr.io/aobaiwaki123/dummy-exporter
-    newTag: latest
+- name: dummy-exporter
+  newName: ghcr.io/aobaiwaki123/dummy-exporter
+  newTag: 0.0.1
+- name: switchbot-exporter
+  newName: ghcr.io/aobaiwaki123/switchbot-exporter
+  newTag: 0.0.1

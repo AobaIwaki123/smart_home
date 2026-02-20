@@ -102,39 +102,82 @@ data:
         },
         {
           "id": 3,
-          "title": "Device Availability Status (Green=UP, Red=DOWN)",
-          "type": "state-timeline",
+          "title": "Power Usage Stats by Device",
+          "type": "timeseries",
           "gridPos": { "x": 0, "y": 10, "w": 24, "h": 10 },
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "targets": [
             {
-              "expr": "label_replace(switchbot_device_up{job=~\"$job\"}, \"status\", \"UP\", \"device_id\", \".*\") * on(device_id) group_left(room, device_name) (switchbot_power_watts{job=~\"$job\", room=~\"$room\"} >= 0)",
-              "legendFormat": "{{device_name}} ({{room}})",
+              "expr": "switchbot_power_watts{job=~\"$job\", room=~\"$room\"}",
+              "legendFormat": "{{device_name}}",
               "refId": "A"
             }
           ],
           "options": {
-            "mergeValues": true,
-            "showValue": "never",
-            "alignValue": "center",
-            "rowHeight": 0.9,
-            "legend": { "displayMode": "list", "placement": "bottom" },
-            "tooltip": { "mode": "single", "sort": "none" }
+            "legend": {
+              "displayMode": "table",
+              "placement": "right",
+              "calcs": [
+                "mean",
+                "max",
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
           },
           "fieldConfig": {
             "defaults": {
-              "color": { 
-                "mode": "thresholds"
+              "color": {
+                "mode": "palette-classic"
               },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
-                  { "color": "red", "value": null },
-                  { "color": "green", "value": 0.5 }
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
                 ]
               },
-              "min": 0,
-              "max": 1
+              "unit": "watt"
             },
             "overrides": []
           }

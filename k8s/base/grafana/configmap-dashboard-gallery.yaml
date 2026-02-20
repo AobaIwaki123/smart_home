@@ -81,7 +81,7 @@ data:
           "gridPos": { "x": 12, "y": 1, "w": 12, "h": 8 },
           "targets": [
             {
-              "expr": "switchbot_device_up",
+              "expr": "switchbot_device_up * on(device_id) group_left(device_name) switchbot_power_watts",
               "legendFormat": "{{device_name}}"
             }
           ],
@@ -168,17 +168,17 @@ data:
           "gridPos": { "x": 0, "y": 19, "w": 12, "h": 8 },
           "targets": [
             {
-              "expr": "sum(switchbot_power_watts) by (device_name)",
-              "format": "heatmap"
+              "expr": "switchbot_power_watts",
+              "legendFormat": "{{device_name}}"
             }
           ],
           "options": {
-            "calculate": false,
+            "calculate": true,
+            "yAxis": { "unit": "watt" },
             "color": {
               "mode": "scheme",
               "scheme": "Spectral",
-              "exponent": 0.5,
-              "fill": "#b4ff00"
+              "exponent": 0.5
             }
           }
         },
@@ -189,13 +189,16 @@ data:
           "targets": [
             {
               "expr": "sum by (room) (switchbot_power_watts)",
-              "legendFormat": "{{room}}"
+              "legendFormat": "{{room}}",
+              "instant": true,
+              "format": "table"
             }
           ],
           "options": {
             "orientation": "vertical",
             "showValue": "auto",
-            "groupWidth": 0.8
+            "groupWidth": 0.8,
+            "xField": "room"
           },
           "fieldConfig": {
             "defaults": {

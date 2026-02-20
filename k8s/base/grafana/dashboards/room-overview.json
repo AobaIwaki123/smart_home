@@ -185,7 +185,7 @@
                     "links": [
                         {
                             "title": "Drill down to room details",
-                            "url": "/d/smart-home-room-overview?var-room=${__field.labels.room}"
+                            "url": "${__url}?var-room=${__data.fields.room}"
                         }
                     ]
                 },

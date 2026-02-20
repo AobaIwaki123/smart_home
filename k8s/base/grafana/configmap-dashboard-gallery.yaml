@@ -1,0 +1,258 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-gallery
+  labels:
+    app: grafana
+    component: visualization
+data:
+  gallery.json: |
+    {
+      "uid": "smart-home-gallery",
+      "title": "Smart Home — Visualization Gallery",
+      "tags": ["smart-home", "gallery", "demo"],
+      "timezone": "browser",
+      "refresh": "1m",
+      "time": { "from": "now-6h", "to": "now" },
+      "panels": [
+        {
+          "type": "row",
+          "title": "Core Metrics (Stat & Gauge)",
+          "collapsed": false,
+          "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }
+        },
+        {
+          "type": "stat",
+          "title": "Total Power Consumption",
+          "gridPos": { "x": 0, "y": 1, "w": 6, "h": 8 },
+          "targets": [
+            {
+              "expr": "sum(switchbot_power_watts)",
+              "legendFormat": "Total Watts"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "watt",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 100 },
+                  { "color": "red", "value": 500 }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "gauge",
+          "title": "API Requests Remaining",
+          "gridPos": { "x": 6, "y": 1, "w": 6, "h": 8 },
+          "targets": [
+            {
+              "expr": "switchbot_api_requests_remaining",
+              "legendFormat": "Requests"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "min": 0,
+              "max": 10000,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "orange", "value": 1000 },
+                  { "color": "green", "value": 5000 }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "bargauge",
+          "title": "Device Availability (Health)",
+          "gridPos": { "x": 12, "y": 1, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "expr": "switchbot_device_up",
+              "legendFormat": "{{device_name}}"
+            }
+          ],
+          "options": {
+            "displayMode": "lcd",
+            "orientation": "horizontal",
+            "showUnfilled": true
+          },
+          "fieldConfig": {
+            "defaults": {
+              "min": 0,
+              "max": 1,
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": { "text": "Down", "color": "red" },
+                    "1": { "text": "Up", "color": "green" }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "row",
+          "title": "Trends over Time (Time Series)",
+          "collapsed": false,
+          "gridPos": { "x": 0, "y": 9, "w": 24, "h": 1 }
+        },
+        {
+          "type": "timeseries",
+          "title": "Power Usage per Device",
+          "gridPos": { "x": 0, "y": 10, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "expr": "switchbot_power_watts",
+              "legendFormat": "{{device_name}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "showPoints": "auto",
+                "gradientMode": "opacity",
+                "fillOpacity": 10
+              },
+              "unit": "watt"
+            }
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Stacked Power Usage (Area Chart)",
+          "gridPos": { "x": 12, "y": 10, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "expr": "switchbot_power_watts",
+              "legendFormat": "{{device_name}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "stacking": { "mode": "normal", "group": "A" },
+                "fillOpacity": 60
+              },
+              "unit": "watt"
+            }
+          }
+        },
+        {
+          "type": "row",
+          "title": "Distribution & Comparison (Heatmap & Bar Chart)",
+          "collapsed": false,
+          "gridPos": { "x": 0, "y": 18, "w": 24, "h": 1 }
+        },
+        {
+          "type": "heatmap",
+          "title": "Power Usage Distribution (Heatmap)",
+          "gridPos": { "x": 0, "y": 19, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "expr": "sum(switchbot_power_watts) by (device_name)",
+              "format": "heatmap"
+            }
+          ],
+          "options": {
+            "calculate": false,
+            "color": {
+              "mode": "scheme",
+              "scheme": "Spectral",
+              "exponent": 0.5,
+              "fill": "#b4ff00"
+            }
+          }
+        },
+        {
+          "type": "barchart",
+          "title": "Power Usage by Room (Bar Chart)",
+          "gridPos": { "x": 12, "y": 19, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "expr": "sum by (room) (switchbot_power_watts)",
+              "legendFormat": "{{room}}"
+            }
+          ],
+          "options": {
+            "orientation": "vertical",
+            "showValue": "auto",
+            "groupWidth": 0.8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "watt",
+              "color": { "mode": "palette-classic" }
+            }
+          }
+        },
+        {
+          "type": "row",
+          "title": "Tabular Data (Table)",
+          "collapsed": false,
+          "gridPos": { "x": 0, "y": 27, "w": 24, "h": 1 }
+        },
+        {
+          "type": "table",
+          "title": "Detailed Device Metrics",
+          "gridPos": { "x": 0, "y": 28, "w": 24, "h": 8 },
+          "targets": [
+            {
+              "expr": "switchbot_power_watts",
+              "format": "table",
+              "instant": true
+            },
+            {
+              "expr": "switchbot_device_up",
+              "format": "table",
+              "instant": true
+            }
+          ],
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto"
+              }
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "Value #A" },
+                "properties": [ { "id": "displayName", "value": "Power (W)" }, { "id": "unit", "value": "watt" } ]
+              },
+               {
+                "matcher": { "id": "byName", "options": "Value #B" },
+                "properties": [
+                  { "id": "displayName", "value": "Status" },
+                  { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "Offline", "color": "red" }, "1": { "text": "Online", "color": "green" } } } ] }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }

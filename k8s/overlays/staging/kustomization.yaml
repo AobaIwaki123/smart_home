@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: smart-home-staging
+
+# 検証環境用ネームスペース
+namespace: smart-home-staging
+
+resources:
+  - namespace.yaml
+  - ../../base/dummy-exporter
+  - ../../base/victoriametrics
+  - ../../base/grafana
+
+# 検証環境用の名前プリフィックス
+namePrefix: stg-
+
+patches:
+  - path: victoriametrics-config-patch.yaml
+    target:
+      kind: ConfigMap
+      name: victoria-metrics-scrape-config
+  - path: grafana-datasource-patch.yaml
+    target:
+      kind: ConfigMap
+      name: grafana-datasources
+
+# 検証環境用のイメージタグ
+images:
+  - name: dummy-exporter
+    newName: ghcr.io/aobaiwaki123/dummy-exporter
+    newTag: latest

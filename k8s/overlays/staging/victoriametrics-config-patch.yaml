@@ -8,12 +8,12 @@ data:
       scrape_interval: 15s
 
     scrape_configs:
-      - job_name: 'smart-home-exporter'
+      - job_name: 'dummy-exporter'
         static_configs:
           - targets:
-            - 'prod-switchbot-exporter.smart-home.svc.cluster.local:8000'
-        scrape_interval: 30s
-        scrape_timeout: 10s
+            - 'stg-dummy-exporter.smart-home-staging.svc.cluster.local:9100'
+        scrape_interval: 15s
+        scrape_timeout: 5s
         metrics_path: '/metrics'
         honor_timestamps: true
 

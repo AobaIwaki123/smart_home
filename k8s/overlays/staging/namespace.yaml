@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: smart-home-staging
+  labels:
+    app.kubernetes.io/name: smart-home-staging
+    app.kubernetes.io/part-of: smart-home-monitoring
+    kubernetes.io/managed-by: kustomize
+  annotations:
+    description: "Smart Home staging environment - dummy-exporter only"

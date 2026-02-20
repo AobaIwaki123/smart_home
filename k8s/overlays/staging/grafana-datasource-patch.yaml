@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: VictoriaMetrics
+        uid: victoriametrics
+        type: prometheus
+        # namePrefix: stg- により stg-victoriametrics サービスへ接続
+        url: http://stg-victoriametrics:8428
+        isDefault: true
+        access: proxy
+        jsonData:
+          timeInterval: "15s"

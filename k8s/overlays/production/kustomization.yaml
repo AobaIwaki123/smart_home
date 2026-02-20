@@ -38,8 +38,7 @@ patches:
 
 # 本番環境用のイメージタグ
 images:
-- name: dummy-exporter
-  newName: ghcr.io/aobaiwaki123/dummy-exporter
+- name: ghcr.io/aobaiwaki123/dummy-exporter
   newTag: sha-d836167
 - name: ghcr.io/aobaiwaki123/switchbot-exporter
   newTag: 0.0.1

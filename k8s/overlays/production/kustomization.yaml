@@ -9,10 +9,10 @@ namespace: smart-home
 
 # ベース設定の参照
 resources:
-  - ../../base/namespace
-  - ../../base/exporter
-  - ../../base/victoriametrics
-  - ../../base/grafana
+- ../../base/namespace
+- ../../base/exporter
+- ../../base/victoriametrics
+- ../../base/grafana
   # switchbot-secret.yaml は機密のため Git 管理外。
   # `make k8s-secret-generate && kubectl apply -f k8s/secret/switchbot-secret.yaml` で別途適用してください。
   # - ../../secret/switchbot-secret.yaml
@@ -22,21 +22,24 @@ namePrefix: prod-
 
 # 本番環境用の設定を上書き
 patches:
-  - path: deployment-patch.yaml
-  - path: victoriametrics-config-patch.yaml
-    target:
-      kind: ConfigMap
-      name: victoria-metrics-scrape-config
-  - path: grafana-datasource-patch.yaml
-    target:
-      kind: ConfigMap
-      name: grafana-datasources
-  - path: grafana-tailscale-patch.yaml
-    target:
-      kind: Service
-      name: grafana
+- path: deployment-patch.yaml
+- path: victoriametrics-config-patch.yaml
+  target:
+    kind: ConfigMap
+    name: victoria-metrics-scrape-config
+- path: grafana-datasource-patch.yaml
+  target:
+    kind: ConfigMap
+    name: grafana-datasources
+- path: grafana-tailscale-patch.yaml
+  target:
+    kind: Service
+    name: grafana
 
 # 本番環境用のイメージタグ
 images:
-  - name: ghcr.io/aobaiwaki123/switchbot-exporter
-    newTag: 0.0.1
+- name: dummy-exporter
+  newName: ghcr.io/aobaiwaki123/dummy-exporter
+  newTag: sha-d836167
+- name: ghcr.io/aobaiwaki123/switchbot-exporter
+  newTag: 0.0.1

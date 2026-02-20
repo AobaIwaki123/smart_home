@@ -8,55 +8,55 @@ SwitchBotデバイスを使った電力監視・コスト可視化システム�
 graph LR
     A[SwitchBot API] --> B[📡 Exporter]
     B --> C[📊 VictoriaMetrics]
-    C --> D[⚡ BFF API]
-    C --> E[🧐 OpenObserve]
-    E -.-> G[📦 MinIO]
-    D --> F[📱 Frontend]
+    C --> D[📈 Grafana]
+    E[🧪 dummy-exporter] --> C
     
     subgraph "Kubernetes Cluster"
         B
         C  
         D
         E
-        F
-        G
     end
 ```
 
 ### **コンポーネント構成**
-| コンポーネント                                           | 役割                     | 詳細ドキュメント                |
-| -------------------------------------------------------- | ------------------------ | ------------------------------- |
-| **🔌 [Exporter](base/exporter/README.md)**                | データ収集エンジン       | SwitchBot APIから電力データ取得 |
-| **📊 [VictoriaMetrics](base/victoria-metrics/README.md)** | 時系列データベース       | 電力データの永続化・クエリ処理  |
-| **🧐 [OpenObserve](base/openobserve/README.md)**          | 可観測性プラットフォーム | ログ・メトリクスの可視化・分析  |
-| **📦 [MinIO](base/minio/README.md)**                      | オブジェクトストレージ   | ログ・監視データの永続保存      |
-| **⚡ [BFF](../services/bff/README.md)**                   | ビジネスロジック         | コスト計算・API提供             |
-| **📱 [Frontend](../services/frontend/README.md)**         | ユーザーインターフェース | ダッシュボード・設定画面        |
+| コンポーネント                                          | 役割                     | 詳細ドキュメント                |
+| ------------------------------------------------------- | ------------------------ | ------------------------------- |
+| **🔌 [Exporter](base/exporter/README.md)**               | データ収集エンジン       | SwitchBot APIから電力データ取得 |
+| **🧪 [dummy-exporter](base/dummy-exporter/README.md)**   | 開発用ダミー生成器       | APIキー不要で動作確認できる     |
+| **📊 [VictoriaMetrics](base/victoriametrics/README.md)** | 時系列データベース       | 電力データの永続化・クエリ処理  |
+| **📈 [Grafana](base/grafana/README.md)**                 | 可視化ダッシュボード     | PromQL でメトリクスをグラフ化   |
+| **⚡ BFF** *(未実装)*                                    | ビジネスロジック         | コスト計算・API提供             |
+| **📱 Frontend** *(未実装)*                               | ユーザーインターフェース | ダッシュボード・設定画面        |
 
 ## 📁 **ディレクトリ構成**
 
 ```
 k8s/
 ├── base/                           # 共通基本設定
-│   ├── namespace.yaml              # smart-home ネームスペース
+│   ├── namespace/                  # smart-home Namespace
 │   ├── kustomization.yaml          # ベース統合設定
 │   ├── exporter/                   # SwitchBot Exporter
 │   │   ├── README.md               # 📡 データ収集の詳細
-│   │   ├── deployment.yaml         
-│   │   ├── service.yaml           
-│   │   └── configmap.yaml         
-│   ├── victoria-metrics/           # 時系列データベース
-│   │   ├── README.md               # 📊 データ永続化の詳細
-│   │   ├── statefulset.yaml       
-│   │   └── ...
-│   ├── openobserve/                # 可視化・ログ管理
-│   │   ├── README.md               # 🧐 可視化基盤の詳細
 │   │   ├── deployment.yaml
-│   │   └── ...
-│   └── minio/                      # S3互換ストレージ
-│       ├── README.md               # 📦 ストレージの詳細
+│   │   ├── service.yaml
+│   │   └── configmap.yaml
+│   ├── dummy-exporter/             # 開発用ダミーメトリクス生成器
+│   │   ├── README.md               # 🧪 dummy-exporter の詳細
+│   │   ├── deployment.yaml
+│   │   └── service.yaml
+│   ├── victoriametrics/            # 時系列データベース
+│   │   ├── README.md               # 📊 データ永続化の詳細
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   ├── configmap.yaml
+│   │   └── pvc.yaml
+│   └── grafana/                    # 可視化ダッシュボード
+│       ├── README.md               # 📈 Grafana の詳細
 │       ├── deployment.yaml
-│       └── ...
+│       ├── service.yaml
+│       ├── configmap.yaml
+│       └── pvc.yaml
 └── overlays/                       # 環境固有設定
     ├── mock/                       # 開発・テスト環境
     │   ├── kustomization.yaml
@@ -69,30 +69,7 @@ k8s/
 
 ## 🚀 **クイックスタート**
 
-### **1. 開発環境（モック）デプロイ**
-SwitchBot APIキー不要で、すぐに動作確認が可能：
-
-```bash
-# 全コンポーネントのモック環境起動
-kubectl apply -k k8s/overlays/mock
-
-# デプロイ確認
-kubectl get pods -n smart-home
-
-# メトリクス確認
-kubectl port-forward -n smart-home svc/exporter 8000:8000
-# http://localhost:8000/metrics
-
-# VictoriaMetrics管理画面
-kubectl port-forward -n smart-home svc/victoria-metrics 8428:8428  
-# http://localhost:8428
-
-# OpenObserve（可視化）
-kubectl port-forward -n smart-home svc/openobserve 5080:5080
-# http://localhost:5080
-```
-
-### **2. 本番環境デプロイ**  
+### **本番環境デプロイ**  
 実際のSwitchBotデバイスと連携：
 
 ```bash
@@ -145,17 +122,7 @@ kubectl port-forward -n smart-home svc/openobserve 5080:5080
 デバイス設定は [`base/exporter/README.md`](base/exporter/README.md#設定のカスタマイズ) を参照
 
 ### **データ保持期間の変更**
-ストレージ・保持期間は [`base/victoria-metrics/README.md`](base/victoria-metrics/README.md#設定のカスタマイズ) を参照
-
-### **環境切り替え**
-```bash
-# モック → 本番切り替え
-kubectl delete -k k8s/overlays/mock
-kubectl apply -k k8s/overlays/production
-
-# 設定変更の反映
-kubectl rollout restart deployment -n smart-home
-```
+VictoriaMetricsの保持期間は [`base/victoriametrics/README.md`](base/victoriametrics/README.md) を参照
 
 ## 🛠️ **利用可能なMakeコマンド**
 
@@ -164,7 +131,7 @@ kubectl rollout restart deployment -n smart-home
 make k8s-secret-generate     # API認証情報のSecret生成
 make k8s-deploy-mock         # モック環境デプロイ
 make k8s-deploy-production   # 本番環境デプロイ
-make k8s-clean              # 生成ファイルクリーンアップ
+make k8s-secret-clean        # 生成ファイルクリーンアップ
 
 # Docker開発環境
 make docker-build-exporter   # Exporterイメージビルド
@@ -191,18 +158,15 @@ kubectl describe nodes
 # Exporter側の問題
 kubectl logs -n smart-home -l app=switchbot-exporter --tail=100
 
-# VictoriaMetrics側の問題  
-kubectl logs -n smart-home -l app=victoria-metrics --tail=100
-kubectl exec -n smart-home victoria-metrics-0 -- curl http://localhost:8428/targets
-```
+# VictoriaMetrics側の問題
+kubectl logs -n smart-home -l app=victoriametrics --tail=100
 
-### **可視化・ストレージの問題**
-```bash
-# OpenObserveのログ確認
-kubectl logs -n smart-home -l app=openobserve
+# スクレイプターゲットの状態確認
+kubectl port-forward -n smart-home svc/prod-victoriametrics 8428:8428
+curl http://localhost:8428/targets
 
-# MinIOのログ確認
-kubectl logs -n smart-home -l app=minio
+# Grafanaの問題
+kubectl logs -n smart-home -l app=grafana --tail=100
 ```
 
 ### **ネットワーク疎通問題**
@@ -219,20 +183,22 @@ kubectl exec -n smart-home victoria-metrics-0 -- curl -f http://exporter.smart-h
 
 ### **コンポーネントアップデート**
 ```bash
-# 新しいイメージタグに更新
-kubectl patch deployment exporter -n smart-home --patch='{"spec":{"template":{"spec":{"containers":[{"name":"exporter","image":"new-image:tag"}]}}}}'
+# コンポーネントアップデート
+# overlays/production/kustomization.yaml の images タグを変更し再デプロイする
+make k8s-deploy-production
 
-# StatefulSetの更新（VictoriaMetrics）
-kubectl patch statefulset victoria-metrics -n smart-home --patch='{"spec":{"template":{"spec":{"containers":[{"name":"victoria-metrics","image":"victoriametrics/victoria-metrics:v1.98.0"}]}}}}'
+# または Deployment を即座に再起動
+kubectl rollout restart deployment -n smart-home
 ```
 
 ### **データバックアップ**
 ```bash
 # VictoriaMetricsデータのスナップショット
-kubectl exec -n smart-home victoria-metrics-0 -- curl -X POST http://localhost:8428/snapshot/create
+kubectl port-forward -n smart-home svc/prod-victoriametrics 8428:8428
+curl -X POST 'http://localhost:8428/snapshot/create'
 
-# PVCデータの外部バックアップ
-kubectl get pvc victoria-metrics-storage -n smart-home -o yaml > victoria-metrics-pvc-backup.yaml
+# PVCの現在の動作確認
+kubectl get pvc -n smart-home
 ```
 
 ## 📈 **次の実装フェーズ**

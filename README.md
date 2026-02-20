@@ -1,31 +1,61 @@
-# ディレクトリ構成
+# スマートホーム監視基盤
+
+SwitchBot Plug Mini の消費電力を収集・可視化するシステム。  
+Prometheus 互換メトリクスを VictoriaMetrics に蓄積し、Grafana で可視化する。
+
+## システム概要
+
+```
+SwitchBot API
+     │
+     ▼
+ [Exporter]  ←── Python / Prometheus format
+     │
+     ▼
+[VictoriaMetrics]  ←── 時系列DB（スクレイプ担当も兼任）
+     │
+     ▼
+  [Grafana]  ←── ダッシュボード
+```
+
+開発・動作確認時は、実デバイスの代わりに `dummy-exporter` がダミーメトリクスを生成する。
+
+## ディレクトリ構成
 
 ```sh
 smart_home/
-├── README.md               # プロジェクト全体の概要・仕様書
-├── .env.example            # 環境変数のテンプレート（機密情報は含まない）
+├── README.md               # このファイル
+├── .env.example            # 環境変数テンプレート（機密情報は含まない）
 ├── Makefile                # ビルド・デプロイ・テストのタスク定義
-├── k8s/                    # Kubernetesマニフェスト（GitOpsを見据えて分離）
-│   ├── base/               # 全環境共通設定
-│   │   ├── victoria-metrics/
-│   │   ├── exporter/
-│   │   ├── bff/
-│   │   └── frontend/
-│   └── overlays/           # モック用、本番用などの環境差異
-│       ├── mock/
-│       └── production/
-├── services/               # アプリケーション本体
+├── k8s/                    # Kubernetes マニフェスト
+│   ├── base/               # 全環境共通設定（Kustomize base）
+│   │   ├── kustomization.yaml
+│   │   ├── namespace/      # smart-home Namespace
+│   │   ├── exporter/       # SwitchBot データ収集エンジン
+│   │   ├── dummy-exporter/ # 開発用ダミーメトリクス生成器
+│   │   ├── victoriametrics/# 時系列データベース
+│   │   ├── grafana/        # ダッシュボード
+│   │   ├── bff/            # (未使用) バックエンド API
+│   │   └── frontend/       # (未使用) フロントエンド UI
+│   └── overlays/           # 環境差異設定
+│       └── production/     # 本番環境（実 SwitchBot API 使用）
+├── services/               # アプリケーション実装
 │   ├── exporter/           # データ収集スクリプト (Python)
 │   │   ├── src/            # メインロジック
-│   │   ├── tests/          # 認証テスト用スクリプト等
+│   │   ├── tests/          # pytest テスト
+│   │   ├── scripts/        # 開発用ユーティリティ
 │   │   ├── Dockerfile
 │   │   └── requirements.txt
-│   ├── bff/                # バックエンド API (FastAPI)
+│   ├── dummy-exporter/     # ダミーメトリクス生成器 (Python)
 │   │   ├── src/
-│   │   ├── migrations/     # SQLiteのスキーマ管理
 │   │   ├── Dockerfile
 │   │   └── requirements.txt
-│   └── frontend/           # ダッシュボード UI (Next.js)
+│   ├── bff/                # (未実装) バックエンド API (FastAPI)
+│   │   ├── src/
+│   │   ├── migrations/     # SQLite スキーマ管理
+│   │   ├── Dockerfile
+│   │   └── requirements.txt
+│   └── frontend/           # (未実装) ダッシュボード UI (Next.js)
 │       ├── src/
 │       ├── public/
 │       ├── Dockerfile
@@ -33,6 +63,18 @@ smart_home/
 └── scripts/                # 開発・運用補助スクリプト
 ```
 
-# 参考にした記事
+## クイックスタート
+
+```bash
+# 本番環境（.env に SWITCHBOT_TOKEN/SECRET を設定済みの前提）
+make k8s-deploy-production
+
+# 状態確認
+kubectl get pods -n smart-home
+```
+
+詳細は [k8s/README.md](k8s/README.md) を参照。
+
+## 参考
 
 - [職場のプロジェクトに必ず配置しちゃうMakefileの話 - Zenn](https://zenn.dev/loglass/articles/0016-make-makefile)

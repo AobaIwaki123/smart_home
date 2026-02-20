@@ -32,61 +32,6 @@ list-devices: ## Check real device IDs (Requires SWITCHBOT_TOKEN/SECRET)
 		switchbot-exporter:latest \
 		python scripts/list_devices.py
 
-run-real: ## Run Exporter in real mode (Requires SWITCHBOT_TOKEN/SECRET)
-	@set -a; [ -f .env ] && . ./.env; set +a; \
-	if [ -z "$$SWITCHBOT_TOKEN" ] || [ -z "$$SWITCHBOT_SECRET" ]; then \
-		echo "ERROR: SWITCHBOT_TOKEN or SWITCHBOT_SECRET is not set."; \
-		echo "  Please create .env file or export them."; \
-		exit 1; \
-	fi; \
-	cd services/exporter && \
-	SWITCHBOT_TOKEN="$$SWITCHBOT_TOKEN" \
-	SWITCHBOT_SECRET="$$SWITCHBOT_SECRET" \
-	COLLECTION_INTERVAL=10 \
-	LOG_LEVEL=INFO \
-	docker compose up --build
-
-## Docker Commands for SwitchBot Exporter ##
-
-docker-build-exporter: ## Build Docker image (multi-arch supported)
-	cd services/exporter && docker build -t switchbot-exporter:latest .
-
-docker-run-exporter: ## Run exporter container
-	cd services/exporter && docker compose up switchbot-exporter
-
-docker-dev: ## Start development environment (with Prometheus)
-	cd services/exporter && docker compose --profile monitoring up -d
-
-docker-test-exporter: ## Run local tests
-	cd services/exporter && docker build -t switchbot-exporter:test . && \
-	docker run --rm -e SWITCHBOT_TOKEN=test -e SWITCHBOT_SECRET=test switchbot-exporter:test python -m pytest
-
-docker-down: ## Stop and remove containers
-	cd services/exporter && docker compose down
-
-docker-buildx-exporter: ## Multi-arch build (for production)
-	cd services/exporter && docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		-t switchbot-exporter:multiarch \
-		--push .
-
-docker-logs: ## Monitor logs
-	cd services/exporter && docker compose logs -f switchbot-exporter
-
-## Docker Commands for Dummy Exporter ##
-
-docker-build-dummy: ## Build dummy-exporter Docker image
-	cd services/dummy-exporter && docker build -t dummy-exporter:latest .
-
-docker-run-dummy: ## Run dummy-exporter container (port 9100)
-	cd services/dummy-exporter && docker compose up
-
-docker-down-dummy: ## Stop dummy-exporter container
-	cd services/dummy-exporter && docker compose down
-
-docker-logs-dummy: ## Monitor dummy-exporter logs
-	cd services/dummy-exporter && docker compose logs -f dummy-exporter
-
 ## Kubernetes Commands ##
 
 k8s-secret-generate: ## Generate K8s secret from .env
@@ -113,16 +58,10 @@ k8s-secret-clean: ## Clean up generated Kubernetes files
 	@rm -f k8s/overlays/production/openobserve-secret.yaml
 	@echo "✅ Cleanup completed!"
 
-k8s-deploy-mock: ## Deploy mock environment
-	@echo "🧪 Deploying mock environment..."
-	kubectl apply -k k8s/overlays/mock
-	@echo "✅ Mock environment deployed!"
-	@echo "📊 Check status: kubectl get pods -n smart-home"
-
 k8s-deploy-production: k8s-secret-generate ## Deploy production environment (auto-generates secret.yaml)
 	@echo "🚀 Deploying production environment..."
 	kubectl apply -k k8s/overlays/production
 	@echo "✅ Production environment deployed!"
 	@echo "📊 Check status: kubectl get pods -n smart-home"
 
-.PHONY: pip list-devices run-real docker-build-exporter docker-run-exporter docker-dev docker-test-exporter docker-down docker-buildx-exporter docker-logs docker-build-dummy docker-run-dummy docker-down-dummy docker-logs-dummy k8s-secret-generate k8s-secret-clean k8s-deploy-mock k8s-deploy-production
+.PHONY: pip list-devices run-real docker-build-exporter docker-run-exporter docker-dev docker-test-exporter docker-down docker-buildx-exporter docker-logs docker-build-dummy docker-run-dummy docker-down-dummy docker-logs-dummy k8s-secret-generate k8s-secret-clean k8s-deploy-production

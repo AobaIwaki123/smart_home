@@ -10,64 +10,6 @@ SwitchBot Exporter には以下のモック機能が実装されています：
 - **動的電力値**: 80%の確率で待機電力（5-10W）、20%の確率で高負荷（100-300W）をシミュレート
 - **可視化対応**: VictoriaMetrics/Grafana での興味深いグラフ生成が可能
 
-## 🚀 モックデータでの動作確認
-
-### STEP 1: 環境変数の設定
-
-```bash
-# モックモードを有効化
-export USE_MOCK=true
-
-# その他の設定（オプション）
-export LOG_LEVEL=DEBUG
-export COLLECTION_INTERVAL=10  # 10秒間隔で高頻度テスト
-export METRICS_PORT=8000
-```
-
-### STEP 2: デバイス設定の確認
-
-`devices.json` ファイルが作成されていることを確認してください：
-
-```bash
-cat devices.json
-```
-
-期待される出力：
-```json
-[
-  {
-    "id": "V2E012345678",
-    "name": "server", 
-    "house": "myhome",
-    "room": "work",
-    "shelf": "rack_1"
-  },
-  ...
-]
-```
-
-### STEP 3: Docker Compose でのモック実行
-
-```bash
-# モックモードでエクスポーターを起動
-USE_MOCK=true docker compose up switchbot-exporter
-
-# または バックグラウンドで実行
-USE_MOCK=true docker compose up -d switchbot-exporter
-```
-
-### STEP 4: メトリクス確認
-
-新しいターミナルを開いて以下を実行：
-
-```bash
-# メトリクスエンドポイントにアクセス
-curl http://localhost:8000/metrics
-
-# または ブラウザで確認
-open http://localhost:8000/metrics
-```
-
 ## ✅ 期待される出力形式
 
 ### 1. 正常なメトリクス出力例
@@ -139,37 +81,11 @@ switchbot_api_requests_remaining 9999
 docker compose exec switchbot-exporter ls -la /app/devices.json
 ```
 
-## ⚡ 高頻度テストモード 
-
-開発時により頻繁な動作確認をしたい場合：
-
-```bash
-# 5秒間隔で収集
-USE_MOCK=true COLLECTION_INTERVAL=5 LOG_LEVEL=DEBUG docker compose up switchbot-exporter
-```
-
-## 🎨 可視化テスト（オプション）
-
-Prometheus も同時起動して可視化をテストする場合：
-
-```bash
-# エクスポーター + Prometheus を同時起動
-USE_MOCK=true docker compose --profile prometheus up
-
-# Prometheus UI を確認
-open http://localhost:9090
-```
-
 PrometheusのUIで `switchbot_power_watts` クエリを実行すると、モックデータによる動的な電力値の変化をグラフで確認できます。
 
-## 🚦 実際のAPIモードへの切り替え
-
-モックテストが完了したら、以下で実際のAPIモードに切り替えます：
+## 🚦 動作確認
 
 ```bash
-# 1. モックモードを無効化
-export USE_MOCK=false
-
 # 2. 実際のAPI認証情報を設定
 export SWITCHBOT_TOKEN="your_actual_token"
 export SWITCHBOT_SECRET="your_actual_secret"
@@ -178,4 +94,14 @@ export SWITCHBOT_SECRET="your_actual_secret"
 docker compose restart switchbot-exporter
 ```
 
-これで本番環境と同等の動作確認が可能です！
+## 🎨 可視化テスト（オプション）
+
+Prometheus も同時起動して可視化をテストする場合：
+
+```bash
+# エクスポーター + Prometheus を同時起動
+docker compose --profile prometheus up
+
+# Prometheus UI を確認
+open http://localhost:9090
+```

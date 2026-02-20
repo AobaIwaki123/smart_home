@@ -38,13 +38,11 @@ spec:
                 secretKeyRef:
                   name: switchbot-credentials
                   key: token
-                  optional: true # mockモードでは必要ないため
             - name: SWITCHBOT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: switchbot-credentials
                   key: secret
-                  optional: true # mockモードでは必要ないため
           volumeMounts:
             - name: devices-config
               mountPath: /app/devices.json

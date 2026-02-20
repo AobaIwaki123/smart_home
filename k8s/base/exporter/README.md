@@ -22,17 +22,6 @@ SwitchBot Exporterは、SwitchBot Hub Plus/Meterデバイスから電力・環�
 
 ## 🚀 **デプロイメント方法**
 
-### **モック環境（APIキー不要）**
-開発・テスト用の環境を構築：
-```bash
-# モック環境デプロイ
-kubectl apply -k k8s/overlays/mock/
-
-# 動作確認
-kubectl port-forward -n smart-home svc/exporter 8000:8000
-curl http://localhost:8000/metrics
-```
-
 ### **本番環境（実際のAPIキー使用）**
 実際のSwitchBotデバイスからデータ収集：
 

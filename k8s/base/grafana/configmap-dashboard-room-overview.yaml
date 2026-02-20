@@ -59,11 +59,13 @@ data:
             }
           ],
           "options": {
+            "pieType": "donut",
             "legend": { "displayMode": "list", "placement": "right" },
             "tooltip": { "mode": "single" }
           },
           "fieldConfig": {
             "defaults": {
+              "color": { "mode": "palette-classic" },
               "unit": "watt",
               "links": [
                 {
@@ -89,11 +91,12 @@ data:
             }
           ],
           "options": {
+            "pieType": "donut",
             "legend": { "displayMode": "list", "placement": "right" },
             "tooltip": { "mode": "single" }
           },
           "fieldConfig": {
-            "defaults": { "unit": "watt" },
+            "defaults": { "color": { "mode": "palette-classic" }, "unit": "watt" },
             "overrides": []
           }
         },

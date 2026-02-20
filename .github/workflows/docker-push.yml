@@ -134,3 +134,63 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=dummy-exporter
           cache-to: type=gha,mode=max,scope=dummy-exporter
+
+  # ビルド成功後にkustomizationのイメージタグを自動更新し、ArgoCDに反映させる
+  update-manifest:
+    name: Update Kubernetes manifest image tags
+    needs: [build-and-push-exporter, build-and-push-dummy-exporter]
+    # PRは除外。少なくとも1つのビルドジョブが成功した場合のみ実行
+    if: |
+      always() &&
+      github.event_name != 'pull_request' &&
+      (needs.build-and-push-exporter.result == 'success' ||
+       needs.build-and-push-dummy-exporter.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository (main branch)
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # マニフェストは常にmainブランチに反映する
+          ref: main
+
+      - name: Determine image tag
+        id: tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            # semver タグ push: "v1.2.3" → "1.2.3"
+            echo "tag=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            # mainブランチ push: "sha-abc1234" 形式
+            echo "tag=sha-$(echo ${GITHUB_SHA} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Update switchbot-exporter image tag
+        if: needs.build-and-push-exporter.result == 'success'
+        working-directory: k8s/overlays/production
+        run: |
+          kustomize edit set image \
+            switchbot-exporter=ghcr.io/aobaiwaki123/switchbot-exporter:${{ steps.tag.outputs.tag }}
+
+      - name: Update dummy-exporter image tag
+        if: needs.build-and-push-dummy-exporter.result == 'success'
+        working-directory: k8s/overlays/production
+        run: |
+          kustomize edit set image \
+            dummy-exporter=ghcr.io/aobaiwaki123/dummy-exporter:${{ steps.tag.outputs.tag }}
+
+      - name: Commit and push manifest changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add k8s/overlays/production/kustomization.yaml
+          # 差分がない場合はスキップ（冪等性確保）
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "ci: update image tags to ${{ steps.tag.outputs.tag }} [skip ci]"
+          git push

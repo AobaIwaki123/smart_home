@@ -13,7 +13,9 @@ resources:
   - ../../base/exporter
   - ../../base/victoriametrics
   - ../../base/grafana
-  - ../../secret/switchbot-secret.yaml
+  # switchbot-secret.yaml は機密のため Git 管理外。
+  # `make k8s-secret-generate && kubectl apply -f k8s/secret/switchbot-secret.yaml` で別途適用してください。
+  # - ../../secret/switchbot-secret.yaml
 
 # Production環境用の名前プリフィックス
 namePrefix: prod-

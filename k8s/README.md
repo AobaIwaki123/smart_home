@@ -58,9 +58,6 @@ k8s/
 │       ├── configmap.yaml
 │       └── pvc.yaml
 └── overlays/                       # 環境固有設定
-    ├── mock/                       # 開発・テスト環境
-    │   ├── kustomization.yaml
-    │   └── deployment-patch.yaml
     └── production/                 # 本番環境
         ├── kustomization.yaml
         ├── secret.yaml
@@ -129,7 +126,6 @@ VictoriaMetricsの保持期間は [`base/victoriametrics/README.md`](base/victor
 ```bash
 # Kubernetes関連
 make k8s-secret-generate     # API認証情報のSecret生成
-make k8s-deploy-mock         # モック環境デプロイ
 make k8s-deploy-production   # 本番環境デプロイ
 make k8s-secret-clean        # 生成ファイルクリーンアップ
 

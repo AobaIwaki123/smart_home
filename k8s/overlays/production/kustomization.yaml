@@ -14,7 +14,7 @@ resources:
   - ../../base/dummy-exporter
   - ../../base/victoriametrics
   - ../../base/grafana
-  - secret.yaml
+  # - secret.yaml
 
 # Production環境用の名前プリフィックス
 namePrefix: prod-

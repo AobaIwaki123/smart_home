@@ -189,7 +189,7 @@ def _load_initial_devices() -> None:
         rec: dict[str, Any] = {
             "device_id": device_id,
             "power_watts": float(entry.get("power_watts", 10.0)),
-            "up": True,
+            "up": bool(entry.get("up", True)),
             "auto_jitter": bool(entry.get("auto_jitter", True)),
             "jitter_min": jitter_min,
             "jitter_max": jitter_max,

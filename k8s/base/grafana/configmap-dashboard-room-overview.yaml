@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-room-overview
+  labels:
+    app: grafana
+    component: visualization
+data:
+  room-overview.json: |
+    {
+      "uid": "smart-home-room-overview",
+      "title": "Smart Home — Room Overview",
+      "tags": ["smart-home", "room"],
+      "timezone": "browser",
+      "refresh": "15s",
+      "time": { "from": "now-6h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "job",
+            "label": "Job",
+            "type": "query",
+            "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+            "query": "label_values(switchbot_device_up, job)",
+            "current": {},
+            "multi": true,
+            "includeAll": true,
+            "allValue": ".+",
+            "refresh": 2,
+            "sort": 1
+          },
+          {
+            "name": "room",
+            "label": "Room",
+            "type": "query",
+            "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+            "query": "label_values(switchbot_power_watts{job=~\"$job\"}, room)",
+            "current": { "text": "All", "value": "$__all" },
+            "multi": true,
+            "includeAll": true,
+            "allValue": ".+",
+            "refresh": 2,
+            "sort": 1
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Power Usage by Room",
+          "type": "piechart",
+          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 10 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "expr": "sum by (room) (switchbot_power_watts{job=~\"$job\"})",
+              "legendFormat": "{{room}}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "legend": { "displayMode": "list", "placement": "right" },
+            "tooltip": { "mode": "single" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "watt",
+              "links": [
+                {
+                  "title": "Drill down to room details",
+                  "url": "/d/smart-home-room-overview?var-room=${__field.labels.room}"
+                }
+              ]
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 2,
+          "title": "Power Breakdown ($room)",
+          "type": "piechart",
+          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 10 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "expr": "sum by (device_name) (switchbot_power_watts{job=~\"$job\", room=~\"$room\"})",
+              "legendFormat": "{{device_name}}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "legend": { "displayMode": "list", "placement": "right" },
+            "tooltip": { "mode": "single" }
+          },
+          "fieldConfig": {
+            "defaults": { "unit": "watt" },
+            "overrides": []
+          }
+        },
+        {
+          "id": 3,
+          "title": "Device Availability Status (Green=UP, Red=DOWN)",
+          "type": "state-timeline",
+          "gridPos": { "x": 0, "y": 10, "w": 24, "h": 10 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "expr": "label_replace(switchbot_device_up{job=~\"$job\"}, \"status\", \"UP\", \"device_id\", \".*\") * on(device_id) group_left(room, device_name) (switchbot_power_watts{job=~\"$job\", room=~\"$room\"} >= 0)",
+              "legendFormat": "{{device_name}} ({{room}})",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "mergeValues": true,
+            "showValue": "never",
+            "alignValue": "center",
+            "rowHeight": 0.9,
+            "legend": { "displayMode": "list", "placement": "bottom" },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { 
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 0.5 }
+                ]
+              },
+              "min": 0,
+              "max": 1
+            },
+            "overrides": []
+          }
+        }
+      ]
+    }

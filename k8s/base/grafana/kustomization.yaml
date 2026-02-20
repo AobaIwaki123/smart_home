@@ -9,6 +9,7 @@ resources:
   - configmap.yaml
   - configmap-dashboard-provisioner.yaml
   - configmap-dashboard-device-overview.yaml
+  - configmap-dashboard-room-overview.yaml
   - deployment.yaml
   - service.yaml
   - pvc.yaml

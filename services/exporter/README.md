@@ -19,7 +19,6 @@
 | メトリクス名                       | 型      | 説明                                                               |
 | ---------------------------------- | ------- | ------------------------------------------------------------------ |
 | `switchbot_power_watts`            | Gauge   | 瞬時電力。単位はワット (W)。                                       |
-| `switchbot_energy_total_kwh`       | Counter | 累積電力量。単位はキロワット時 (kWh)。コスト計算のマスターデータ。 |
 | `switchbot_device_up`              | Gauge   | デバイスの到達性。1: 正常, 0: 異常。                               |
 | `switchbot_api_requests_remaining` | Gauge   | 外部APIの残リクエスト可能回数（クォータ監視）。                    |
 

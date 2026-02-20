@@ -128,51 +128,6 @@ VictoriaMetricsの保持期間は [`base/victoriametrics/README.md`](base/victor
 make k8s-secret-generate     # API認証情報のSecret生成
 make k8s-deploy-production   # 本番環境デプロイ
 make k8s-secret-clean        # 生成ファイルクリーンアップ
-
-# Docker開発環境
-make docker-build-exporter   # Exporterイメージビルド
-make docker-dev             # 開発環境起動（Prometheus付き）
-make docker-down            # コンテナ停止・削除
-make docker-logs            # ログ監視
-```
-
-## 🚨 **トラブルシューティング**
-
-### **Pod起動失敗**
-```bash
-# イベント & Pod状態確認
-kubectl get events -n smart-home --sort-by='.metadata.creationTimestamp'
-kubectl describe pods -n smart-home
-
-# イメージプル・リソース不足等の診断
-kubectl get nodes
-kubectl describe nodes
-```
-
-### **データ収集停止**
-```bash
-# Exporter側の問題
-kubectl logs -n smart-home -l app=switchbot-exporter --tail=100
-
-# VictoriaMetrics側の問題
-kubectl logs -n smart-home -l app=victoriametrics --tail=100
-
-# スクレイプターゲットの状態確認
-kubectl port-forward -n smart-home svc/prod-victoriametrics 8428:8428
-curl http://localhost:8428/targets
-
-# Grafanaの問題
-kubectl logs -n smart-home -l app=grafana --tail=100
-```
-
-### **ネットワーク疎通問題**
-```bash
-# サービス疎通確認
-kubectl get svc -n smart-home
-kubectl get endpoints -n smart-home
-
-# Pod間通信テスト
-kubectl exec -n smart-home victoria-metrics-0 -- curl -f http://exporter.smart-home.svc.cluster.local:8000/metrics
 ```
 
 ## 🔄 **アップグレード・メンテナンス**

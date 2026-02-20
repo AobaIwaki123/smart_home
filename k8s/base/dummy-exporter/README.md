@@ -34,7 +34,6 @@ Grafana ダッシュボードの動作確認に使用できる。
 | `service.yaml`       | ClusterIP サービス（ポート 9100）     |
 | `kustomization.yaml` | このコンポーネントのリソース一覧      |
 
-イメージは `ghcr.io/aobaiwaki123/dummy-exporter:latest`。  
 ソースコードは [`services/dummy-exporter/`](../../../../services/dummy-exporter/) にある。
 
 ---
@@ -65,12 +64,6 @@ curl http://localhost:9100/metrics
 curl http://localhost:9100/healthz
 ```
 
-### ログ確認
-
-```bash
-kubectl logs -n smart-home deploy/prod-dummy-exporter -f
-```
-
 ### VictoriaMetrics でのスクレイプ確認
 
 dummy-exporter が VictoriaMetrics に取り込まれているか確認:
@@ -82,20 +75,3 @@ kubectl port-forward -n smart-home svc/prod-victoriametrics 8428:8428
 curl 'http://localhost:8428/api/v1/query?query=device_power_watts' | python3 -m json.tool
 ```
 
----
-
-## ローカル（Docker）での動作確認
-
-```bash
-# Docker イメージビルド
-make docker-build-dummy
-
-# コンテナ起動（ポート 9100 で公開）
-make docker-run-dummy
-
-# ログ監視
-make docker-logs-dummy
-
-# 停止
-make docker-down-dummy
-```

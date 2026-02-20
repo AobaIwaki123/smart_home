@@ -13,7 +13,7 @@ resources:
   - ../../base/exporter
   - ../../base/victoriametrics
   - ../../base/grafana
-    # - secret.yaml
+  - ../../secret/switchbot-secret.yaml
 
 # Production環境用の名前プリフィックス
 namePrefix: prod-
@@ -29,6 +29,10 @@ patches:
     target:
       kind: ConfigMap
       name: grafana-datasources
+  - path: grafana-tailscale-patch.yaml
+    target:
+      kind: Service
+      name: grafana
 
 # 本番環境用のイメージタグ
 images:

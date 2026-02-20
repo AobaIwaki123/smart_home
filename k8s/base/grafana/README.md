@@ -57,23 +57,6 @@ curl http://localhost:3000/api/health
 # {"commit":"...","database":"ok","version":"..."}
 ```
 
-### ログ確認
-
-```bash
-kubectl logs -n smart-home deploy/prod-grafana -f
-kubectl logs -n smart-home deploy/prod-grafana --previous   # 再起動後の前回ログ
-```
-
-### Provisioning が反映されているか確認
-
-```bash
-# データソース一覧（Provisioned なら削除不可と表示される）
-curl -u admin:admin http://localhost:3000/api/datasources | python3 -m json.tool
-
-# ダッシュボード一覧
-curl -u admin:admin http://localhost:3000/api/search | python3 -m json.tool
-```
-
 ---
 
 ## Tailscale での外部公開

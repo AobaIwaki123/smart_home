@@ -1,5 +1,6 @@
 __pycache__/
 .env
 
-# Kubernetes secrets（機密情報）
-k8s/secret/
+# Kubernetes secrets（機密情報）- テンプレートはコミット対象、生成ファイルは除外
+k8s/secret/*.yaml
+!k8s/secret/*.template.yaml

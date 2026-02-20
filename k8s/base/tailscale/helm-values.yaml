@@ -1,0 +1,10 @@
+# Tailscale Operator Helm values
+# 認証情報 (oauth.clientId / oauth.clientSecret) はここに書かない。
+# k8s/secret/tailscale-secret.yaml を事前に apply することで Helm が採用する。
+
+operatorConfig:
+  defaultTags:
+    - "tag:k8s"
+
+proxyConfig:
+  defaultTags: "tag:k8s"

@@ -167,6 +167,7 @@
                 "showValue": "auto",
                 "groupWidth": 0.7,
                 "barWidth": 0.97,
+                "xField": "room",
                 "legend": {
                     "displayMode": "list",
                     "placement": "right"
@@ -218,6 +219,7 @@
                 "orientation": "auto",
                 "showValue": "auto",
                 "groupWidth": 0.7,
+                "xField": "device_name",
                 "barWidth": 0.97,
                 "legend": {
                     "displayMode": "list",

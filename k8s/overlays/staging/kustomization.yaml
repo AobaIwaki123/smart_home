@@ -8,33 +8,34 @@ metadata:
 namespace: smart-home-staging
 
 resources:
-  - namespace.yaml
-  - ../../base/dummy-exporter
-  - ../../base/victoriametrics
-  - ../../base/grafana
+- namespace.yaml
+- ../../base/dummy-exporter
+- ../../base/victoriametrics
+- ../../base/grafana
 
 # 検証環境用の名前プリフィックス
 namePrefix: stg-
 
 patches:
-  - path: victoriametrics-config-patch.yaml
-    target:
-      kind: ConfigMap
-      name: victoria-metrics-scrape-config
-  - path: grafana-datasource-patch.yaml
-    target:
-      kind: ConfigMap
-      name: grafana-datasources
-  - path: grafana-tailscale-patch.yaml
-    target:
-      kind: Service
-      name: grafana
-  - path: dummy-exporter-tailscale-patch.yaml
-    target:
-      kind: Service
-      name: dummy-exporter
+- path: victoriametrics-config-patch.yaml
+  target:
+    kind: ConfigMap
+    name: victoria-metrics-scrape-config
+- path: grafana-datasource-patch.yaml
+  target:
+    kind: ConfigMap
+    name: grafana-datasources
+- path: grafana-tailscale-patch.yaml
+  target:
+    kind: Service
+    name: grafana
+- path: dummy-exporter-tailscale-patch.yaml
+  target:
+    kind: Service
+    name: dummy-exporter
 
 # 検証環境用のイメージタグ
 images:
-  - name: ghcr.io/aobaiwaki123/dummy-exporter
-    newTag: sha-d836167
+- name: ghcr.io/aobaiwaki123/dummy-exporter
+  newName: ghcr.io/aobaiwaki123/dummy-exporter
+  newTag: 0.0.2

@@ -40,3 +40,6 @@ patches:
 images:
 - name: ghcr.io/aobaiwaki123/switchbot-exporter
   newTag: 0.0.1
+- name: switchbot-exporter
+  newName: ghcr.io/aobaiwaki123/switchbot-exporter
+  newTag: 0.0.2

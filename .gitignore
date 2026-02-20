@@ -2,4 +2,4 @@ __pycache__/
 .env
 
 # Kubernetes secrets（機密情報）
-secret.yaml
+k8s/secret/

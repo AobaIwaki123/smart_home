@@ -23,8 +23,35 @@ Tailscale Admin Console でオペレーター用の OAuth クライアントを�
 
 1. https://login.tailscale.com/admin/settings/oauth にアクセス
 2. **Generate OAuth client** をクリック
-3. スコープ: `Devices: Write` にチェック（DNS 公開には `DNS: Write` も追加）
-4. 生成された **Client ID** と **Client Secret** を控える
+3. スコープを以下のとおり設定する
+
+   | カテゴリ | スコープ      | 設定値       | 用途                                                                      |
+   | -------- | ------------- | ------------ | ------------------------------------------------------------------------- |
+   | Devices  | **Core**      | ✅ Read/Write | Tailnet 上に仮想デバイスを作成・削除する。これがないと何も動作しない      |
+   | Devices  | **Routes**    | ✅ Read/Write | LoadBalancer 公開・Subnet Router として動作するためにルート広報権限が必要 |
+   | Keys     | **Auth Keys** | ✅ Write      | プロキシ Pod が Tailnet に参加するための一時認証キーを自動生成する        |
+   | DNS      | DNS           | 推奨 Read    | MagicDNS 設定を読み取り、クラスター内からの Tailnet 名前解決に使用する    |
+
+4. **タグ（ACL Tag）を事前に設定する**
+
+   > **重要**: OAuth クライアントにタグが紐付いていない場合、Operator 起動時に
+   > `403: calling actor does not have enough permissions` が発生する。
+
+   Tailscale Admin Console の **Access Controls** (ACL) に以下を追加:
+
+   ```json
+   "tagOwners": {
+     "tag:k8s-operator": [],
+     "tag:k8s": ["tag:k8s-operator"]
+   }
+   ```
+
+   - `tag:k8s-operator`: Operator 自体のタグ（OAuth クライアントに紐付ける）
+   - `tag:k8s`: Operator が管理するデバイスに付与されるタグ（`tag:k8s-operator` が所有者）
+
+   OAuth クライアント作成時に `tag:k8s-operator` を **Tags** フィールドで指定する。
+
+5. 生成された **Client ID** と **Client Secret** を控える
 
 ---
 
@@ -38,19 +65,18 @@ helm repo update
 # Operator 用ネームスペース作成
 kubectl create namespace tailscale
 
-# OAuth クライアント認証情報を Secret として登録
-kubectl create secret generic operator-oauth \
-  --namespace tailscale \
-  --from-literal=client_id=<CLIENT_ID> \
-  --from-literal=client_secret=<CLIENT_SECRET>
-
-# Operator インストール
+# Operator インストール（Helm が operator-oauth Secret を自動作成する）
 helm upgrade --install tailscale-operator tailscale/tailscale-operator \
   --namespace tailscale \
   --set-string oauth.clientId=<CLIENT_ID> \
   --set-string oauth.clientSecret=<CLIENT_SECRET> \
+  --set "operatorConfig.defaultTags[0]=tag:k8s" \
+  --set "proxyConfig.defaultTags=tag:k8s" \
   --wait
 ```
+
+> **注意**: `kubectl create secret` で `operator-oauth` を手動作成してから Helm を実行すると
+> `invalid ownership metadata` エラーが発生する。Secret の作成は Helm に任せること。
 
 インストール確認:
 
@@ -186,8 +212,10 @@ kubectl describe svc -n smart-home prod-grafana
 tailscale status
 ```
 
-| 症状                                | 確認ポイント                                                      |
-| ----------------------------------- | ----------------------------------------------------------------- |
-| `EXTERNAL-IP` が `<pending>` のまま | Operator Pod のログで OAuth 認証エラーを確認                      |
-| 証明書エラー                        | Tailscale MagicDNS・HTTPS が tailnet で有効か確認 (`Admin > DNS`) |
-| VPN 外からアクセスしたい            | `tailscale.com/funnel: "true"` を設定し Funnel を有効化           |
+| 症状                                    | 確認ポイント                                                                                                                                                                                                                         |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `EXTERNAL-IP` が `<pending>` のまま     | Operator Pod のログで OAuth 認証エラーを確認                                                                                                                                                                                         |
+| `403: does not have enough permissions` | ① ACL の `tagOwners` に `tag:k8s-operator` と `tag:k8s` の2タグ構造が設定されていない、または ② OAuth クライアントに `tag:k8s-operator` タグが紐付いていない。タグは作成時のみ設定可能なため、OAuth クライアントを作り直す必要がある |
+| `invalid ownership metadata` (Helm)     | `operator-oauth` Secret が手動作成済み。Secret を削除するか Helm ラベル/アノテーションを付与してから再実行する                                                                                                                       |
+| 証明書エラー                            | Tailscale MagicDNS・HTTPS が tailnet で有効か確認 (`Admin > DNS`)                                                                                                                                                                    |
+| VPN 外からアクセスしたい                | `tailscale.com/funnel: "true"` を設定し Funnel を有効化                                                                                                                                                                              |

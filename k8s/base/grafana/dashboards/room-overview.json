@@ -157,7 +157,9 @@
                 {
                     "expr": "sum by (room) (switchbot_power_watts{job=~\"$job\"})",
                     "legendFormat": "{{room}}",
-                    "refId": "A"
+                    "refId": "A",
+                    "instant": true,
+                    "format": "table"
                 }
             ],
             "options": {
@@ -207,7 +209,9 @@
                 {
                     "expr": "sum by (device_name) (switchbot_power_watts{job=~\"$job\", room=~\"$room\"})",
                     "legendFormat": "{{device_name}}",
-                    "refId": "A"
+                    "refId": "A",
+                    "instant": true,
+                    "format": "table"
                 }
             ],
             "options": {

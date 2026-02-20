@@ -36,6 +36,5 @@ patches:
 
 # 検証環境用のイメージタグ
 images:
-  - name: dummy-exporter
-    newName: ghcr.io/aobaiwaki123/dummy-exporter
+  - name: ghcr.io/aobaiwaki123/dummy-exporter
     newTag: latest

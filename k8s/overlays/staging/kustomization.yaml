@@ -38,4 +38,4 @@ patches:
 images:
 - name: ghcr.io/aobaiwaki123/dummy-exporter
   newName: ghcr.io/aobaiwaki123/dummy-exporter
-  newTag: 0.0.2
+  newTag: sha-a0e05c6

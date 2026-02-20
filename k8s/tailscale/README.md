@@ -34,12 +34,12 @@ k8s/tailscale/
 
 [Admin Console の OAuth Clients](https://login.tailscale.com/admin/settings/oauth) で作成:
 
-| カテゴリー | スコープ          | 設定値        | 用途                                                                      |
-| -------- | ------------- | ------------- | ------------------------------------------------------------------------- |
-| Devices  | **Core**      | ✅ Read/Write  | Tailnet 上に仒想デバイスを作成・削除する。これがないと何も動作しない      |
-| Devices  | **Routes**    | ✅ Read/Write  | LoadBalancer 公開・Subnet Router として動作するためにルート広報権限が必要 |
-| Keys     | **Auth Keys** | ✅ Write       | プロキシ Pod が Tailnet に参加するための一時認証キーを自動生成する        |
-| DNS      | DNS           | 推奨 Read     | MagicDNS 設定を読み取り、クラスター内からの Tailnet 名前解決に使用する    |
+| カテゴリー | スコープ      | 設定値       | 用途                                                                      |
+| ---------- | ------------- | ------------ | ------------------------------------------------------------------------- |
+| Devices    | **Core**      | ✅ Read/Write | Tailnet 上に仒想デバイスを作成・削除する。これがないと何も動作しない      |
+| Devices    | **Routes**    | ✅ Read/Write | LoadBalancer 公開・Subnet Router として動作するためにルート広報権限が必要 |
+| Keys       | **Auth Keys** | ✅ Write      | プロキシ Pod が Tailnet に参加するための一時認証キーを自動生成する        |
+| DNS        | DNS           | 推奨 Read    | MagicDNS 設定を読み取り、クラスター内からの Tailnet 名前解決に使用する    |
 
 **Tags** フィールドに `tag:k8s-operator` を必ず指定すること。
 
@@ -96,10 +96,10 @@ kubectl logs -n tailscale deploy/tailscale-operator -f
 
 各 overlay の `grafana-tailscale-patch.yaml` で Service を LoadBalancer に変更している。
 
-| 環境       | ホスト名                     | URL                                                 |
-| ---------- | -------------------------- | --------------------------------------------------- |
-| production | `smart-home-grafana`       | `https://smart-home-grafana.<tailnet>.ts.net`       |
-| staging    | `smart-home-grafana-stg`   | `https://smart-home-grafana-stg.<tailnet>.ts.net`   |
+| 環境       | ホスト名                 | URL                                               |
+| ---------- | ------------------------ | ------------------------------------------------- |
+| production | `smart-home-grafana`     | `https://smart-home-grafana.<tailnet>.ts.net`     |
+| staging    | `smart-home-grafana-stg` | `https://smart-home-grafana-stg.<tailnet>.ts.net` |
 
 ### 確認
 
@@ -134,23 +134,3 @@ https://smart-home-grafana-stg.<tailnet>.ts.net    # staging
 ```bash
 make k8s-tailscale-install
 ```
-
----
-
-## アンインストール
-
-```bash
-kustomize build --enable-helm k8s/tailscale | kubectl delete -f -
-kubectl delete namespace tailscale
-```
-
----
-
-## トラブルシューティング
-
-| 症状                                              | 対処                                                                                                                                                                       |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `403: does not have enough permissions`           | ACL の `tagOwners` に2タグ構造が設定されているか確認。OAuth クライアント作成時に `tag:k8s-operator` が指定されているか確認（後から変更不可のため再作成が必要）             |
-| `invalid ownership metadata` (Helm)               | `operator-oauth` Secret が手動作成済み。Secret を削除してから `make k8s-tailscale-install` を再実行                                                                        |
-| `EXTERNAL-IP` が `<pending>` のまま               | `kubectl logs -n tailscale deploy/tailscale-operator -f` で OAuth 認証エラーを確認                                                                                         |
-| Grafana が `smart-home-grafana.ts.net` で開かない | `kubectl get svc -n smart-home prod-grafana` の `EXTERNAL-IP` を確認。[Tailscale Admin Console](https://login.tailscale.com/admin/machines) でノードが登録されているか確認 |

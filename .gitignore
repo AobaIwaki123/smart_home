@@ -4,3 +4,6 @@ __pycache__/
 # Kubernetes secrets（機密情報）- テンプレートはコミット対象、生成ファイルは除外
 k8s/secret/*.yaml
 !k8s/secret/*.template.yaml
+
+# Helm chart cache（kustomize build --enable-helm で自動生成される）
+**/charts/

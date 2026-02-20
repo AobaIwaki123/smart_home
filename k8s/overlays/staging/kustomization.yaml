@@ -37,4 +37,4 @@ patches:
 # 検証環境用のイメージタグ
 images:
   - name: ghcr.io/aobaiwaki123/dummy-exporter
-    newTag: latest
+    newTag: sha-d836167

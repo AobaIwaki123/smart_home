@@ -55,7 +55,7 @@ spec:
               mountPath: /etc/grafana/provisioning/datasources
             - name: dashboard-provisioner
               mountPath: /etc/grafana/provisioning/dashboards
-            - name: dashboard-device-overview
+            - name: dashboards
               mountPath: /var/lib/grafana/dashboards
 
           livenessProbe:
@@ -93,6 +93,10 @@ spec:
         - name: dashboard-provisioner
           configMap:
             name: grafana-dashboards-provisioner
-        - name: dashboard-device-overview
-          configMap:
-            name: grafana-dashboard-device-overview
+        - name: dashboards
+          projected:
+            sources:
+              - configMap:
+                  name: grafana-dashboard-device-overview
+              - configMap:
+                  name: grafana-dashboard-room-overview

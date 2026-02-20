@@ -47,7 +47,7 @@ data:
       "panels": [
         {
           "id": 1,
-          "title": "Power Usage by Room",
+          "title": "Power Usage by Room (Pie)",
           "type": "piechart",
           "gridPos": { "x": 0, "y": 0, "w": 12, "h": 10 },
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
@@ -79,7 +79,7 @@ data:
         },
         {
           "id": 2,
-          "title": "Power Breakdown ($room)",
+          "title": "Power Breakdown ($room) (Pie)",
           "type": "piechart",
           "gridPos": { "x": 12, "y": 0, "w": 12, "h": 10 },
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
@@ -101,10 +101,71 @@ data:
           }
         },
         {
+          "id": 4,
+          "title": "Power Usage by Room (Bar)",
+          "type": "barchart",
+          "gridPos": { "x": 0, "y": 10, "w": 12, "h": 10 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "expr": "sum by (room) (switchbot_power_watts{job=~\"$job\"})",
+              "legendFormat": "{{room}}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "orientation": "auto",
+            "showValue": "auto",
+            "groupWidth": 0.7,
+            "barWidth": 0.97,
+            "legend": { "displayMode": "list", "placement": "right" },
+            "tooltip": { "mode": "single" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "watt",
+              "links": [
+                {
+                  "title": "Drill down to room details",
+                  "url": "/d/smart-home-room-overview?var-room=${__field.labels.room}"
+                }
+              ]
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 5,
+          "title": "Power Breakdown ($room) (Bar)",
+          "type": "barchart",
+          "gridPos": { "x": 12, "y": 10, "w": 12, "h": 10 },
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "targets": [
+            {
+              "expr": "sum by (device_name) (switchbot_power_watts{job=~\"$job\", room=~\"$room\"})",
+              "legendFormat": "{{device_name}}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "orientation": "auto",
+            "showValue": "auto",
+            "groupWidth": 0.7,
+            "barWidth": 0.97,
+            "legend": { "displayMode": "list", "placement": "right" },
+            "tooltip": { "mode": "single" }
+          },
+          "fieldConfig": {
+            "defaults": { "color": { "mode": "palette-classic" }, "unit": "watt" },
+            "overrides": []
+          }
+        },
+        {
           "id": 3,
           "title": "Power Usage Stats by Device",
           "type": "timeseries",
-          "gridPos": { "x": 0, "y": 10, "w": 24, "h": 10 },
+          "gridPos": { "x": 0, "y": 20, "w": 24, "h": 10 },
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "targets": [
             {

@@ -66,7 +66,7 @@ k8s-tailscale-install: k8s-secret-generate ## Install/upgrade Tailscale Operator
 	kubectl create namespace tailscale --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f k8s/secret/tailscale-secret.yaml
 	@echo "🚀 Installing Tailscale Operator via Kustomize+Helm..."
-	kustomize build --enable-helm k8s/base/tailscale | kubectl apply --server-side -f -
+	kustomize build --enable-helm k8s/tailscale | kubectl apply --server-side -f -
 	@echo "✅ Tailscale Operator installed!"
 	@echo "📊 Check status: kubectl get pods -n tailscale"
 

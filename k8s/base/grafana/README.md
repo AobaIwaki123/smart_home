@@ -6,7 +6,7 @@ Grafana は本システムの**可視化レイヤー**として動作する。
 
 - VictoriaMetrics を datasource として PromQL でメトリクスを取得・グラフ化
 - ダッシュボードおよびデータソースは ConfigMap による **Provisioning** で自動設定される（GUI での手動設定は不要）
-- 外部公開が必要な場合は Tailscale Operator を使用する（[手順](../../TAILSCALE_OPERATOR.md)）
+- 外部公開が必要な場合は Tailscale Operator を使用する（[手順](../../tailscale/README.md)）
 
 ---
 
@@ -62,7 +62,7 @@ curl http://localhost:3000/api/health
 ## Tailscale での外部公開
 
 VPN 越しに Grafana に安全にアクセスする場合は  
-[k8s/TAILSCALE_OPERATOR.md](../../TAILSCALE_OPERATOR.md) を参照。
+[k8s/tailscale/README.md](../../tailscale/README.md) を参照。
 
 ---
 

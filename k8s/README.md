@@ -20,14 +20,14 @@ graph LR
 ```
 
 ### **コンポーネント構成**
-| コンポーネント                                          | 役割                     | 詳細ドキュメント                |
-| ------------------------------------------------------- | ------------------------ | ------------------------------- |
-| **🔌 [Exporter](base/exporter/README.md)**               | データ収集エンジン       | SwitchBot APIから電力データ取得 |
-| **🧪 [dummy-exporter](base/dummy-exporter/README.md)**   | 開発用ダミー生成器       | APIキー不要で動作確認できる     |
-| **📊 [VictoriaMetrics](base/victoriametrics/README.md)** | 時系列データベース       | 電力データの永続化・クエリ処理  |
-| **📈 [Grafana](base/grafana/README.md)**                 | 可視化ダッシュボード     | PromQL でメトリクスをグラフ化   |
-| **⚡ BFF** *(未実装)*                                    | ビジネスロジック         | コスト計算・API提供             |
-| **📱 Frontend** *(未実装)*                               | ユーザーインターフェース | ダッシュボード・設定画面        |
+| コンポーネント                                          | 役割                       | 詳細ドキュメント                |
+| ------------------------------------------------------- | -------------------------- | ------------------------------- |
+| **🔌 [Exporter](base/exporter/README.md)**               | データ収集エンジン         | SwitchBot APIから電力データ取得 |
+| **🧪 [dummy-exporter](base/dummy-exporter/README.md)**   | 開発用ダミー生成器         | APIキー不要で動作確認できる     |
+| **📊 [VictoriaMetrics](base/victoriametrics/README.md)** | 時系列データベース         | 電力データの永続化・クエリ処理  |
+| **📈 [Grafana](base/grafana/README.md)**                 | 可視化ダッシュボード       | PromQL でメトリクスをグラフ化   |  | **🔗 [Tailscale Operator](base/tailscale/README.md)** | VPN 内 HTTPS 公開 | Grafana を Tailnet 経由で安全公開 |
+| **🔐 [Secret 管理](secret/README.md)**                   | 認証情報のテンプレート管理 | `.env` から自動生成             |  | **⚡ BFF** *(未実装)*                                 | ビジネスロジック  | コスト計算・API提供               |
+| **📱 Frontend** *(未実装)*                               | ユーザーインターフェース   | ダッシュボード・設定画面        |
 
 ## 📁 **ディレクトリ構成**
 
@@ -36,50 +36,48 @@ k8s/
 ├── base/                           # 共通基本設定
 │   ├── namespace/                  # smart-home Namespace
 │   ├── kustomization.yaml          # ベース統合設定
-│   ├── exporter/                   # SwitchBot Exporter
-│   │   ├── README.md               # 📡 データ収集の詳細
-│   │   ├── deployment.yaml
-│   │   ├── service.yaml
-│   │   └── configmap.yaml
-│   ├── dummy-exporter/             # 開発用ダミーメトリクス生成器
-│   │   ├── README.md               # 🧪 dummy-exporter の詳細
-│   │   ├── deployment.yaml
-│   │   └── service.yaml
-│   ├── victoriametrics/            # 時系列データベース
-│   │   ├── README.md               # 📊 データ永続化の詳細
-│   │   ├── deployment.yaml
-│   │   ├── service.yaml
-│   │   ├── configmap.yaml
-│   │   └── pvc.yaml
-│   └── grafana/                    # 可視化ダッシュボード
-│       ├── README.md               # 📈 Grafana の詳細
-│       ├── deployment.yaml
-│       ├── service.yaml
-│       ├── configmap.yaml
-│       └── pvc.yaml
+│   ├── exporter/
+│   ├── dummy-exporter/
+│   ├── victoriametrics/
+│   └── grafana/
+├── tailscale/                      # Tailscale Operator (Helm)
+│   ├── README.md               # 🔗 起動手順・トラブルシューティング
+│   ├── kustomization.yaml
+│   ├── helm-values.yaml
+│   └── namespace.yaml
+├── secret/                         # Secret テンプレート管理
+│   ├── README.md               # 🔐 Secret 追加手順・TODO
+│   ├── switchbot-secret.template.yaml
+│   └── tailscale-secret.template.yaml
 └── overlays/                       # 環境固有設定
-    └── production/                 # 本番環境
+    ├── production/
+    │   ├── kustomization.yaml
+    │   ├── deployment-patch.yaml
+    │   └── grafana-tailscale-patch.yaml
+    └── staging/
         ├── kustomization.yaml
-        ├── secret.yaml
-        └── deployment-patch.yaml
+        └── grafana-tailscale-patch.yaml
 ```
 
 ## 🚀 **クイックスタート**
 
-### **本番環境デプロイ**  
-実際のSwitchBotデバイスと連携：
+### **初回セットアップ**
 
 ```bash
-# 認証情報設定
-cp k8s/.env.example k8s/.env
-vim k8s/.env  # SwitchBot APIキーを設定
+# 1. 認証情報設定
+vim .env  # SWITCHBOT_TOKEN, SWITCHBOT_SECRET, TAILSCALE_CLIENT_ID, TAILSCALE_CLIENT_SECRET を設定
 
-# Secret生成 & デプロイ
-make k8s-secret-generate
-kubectl apply -k k8s/overlays/production
+# 2. Tailscale Operator インストール・認証情報登録
+make k8s-tailscale-install
 
-# 動作確認
-kubectl logs -n smart-home -l app=switchbot-exporter -f
+# 3. Smart Home 本番環境デプロイ
+make k8s-deploy-production
+```
+
+### **2回目以降のデプロイ**
+
+```bash
+make k8s-deploy-production
 ```
 
 ## 📊 **監視・運用コマンド**
@@ -124,10 +122,15 @@ VictoriaMetricsの保持期間は [`base/victoriametrics/README.md`](base/victor
 ## 🛠️ **利用可能なMakeコマンド**
 
 ```bash
-# Kubernetes関連
-make k8s-secret-generate     # API認証情報のSecret生成
-make k8s-deploy-production   # 本番環境デプロイ
-make k8s-secret-clean        # 生成ファイルクリーンアップ
+# Secret 管理
+make k8s-secret-generate     # .env から全 Secret を生成（SwitchBot + Tailscale）
+make k8s-secret-clean        # 生成ファイルを削除
+
+# Tailscale Operator
+make k8s-tailscale-install   # Tailscale Operator のインストール/アップグレード
+
+# 本番環境
+make k8s-deploy-production   # 本番デプロイ（Secret 生成カーコミ）
 ```
 
 ## 🔄 **アップグレード・メンテナンス**

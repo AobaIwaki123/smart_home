@@ -25,6 +25,10 @@ patches:
     target:
       kind: ConfigMap
       name: grafana-datasources
+  - path: grafana-tailscale-patch.yaml
+    target:
+      kind: Service
+      name: grafana
 
 # 検証環境用のイメージタグ
 images:

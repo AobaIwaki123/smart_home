@@ -30,6 +30,12 @@ spec:
               value: "15"
             - name: LOG_LEVEL
               value: "INFO"
+            - name: INITIAL_DEVICES_FILE
+              value: "/config/devices.json"
+          volumeMounts:
+            - name: initial-devices
+              mountPath: /config
+              readOnly: true
           resources:
             requests:
               memory: "64Mi"
@@ -62,3 +68,7 @@ spec:
                 - ALL
       securityContext:
         fsGroup: 1001
+      volumes:
+        - name: initial-devices
+          configMap:
+            name: dummy-exporter-initial-devices

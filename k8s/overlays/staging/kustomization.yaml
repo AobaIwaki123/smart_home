@@ -29,6 +29,10 @@ patches:
     target:
       kind: Service
       name: grafana
+  - path: dummy-exporter-tailscale-patch.yaml
+    target:
+      kind: Service
+      name: dummy-exporter
 
 # 検証環境用のイメージタグ
 images:

@@ -10,6 +10,7 @@ REST API でデバイスの追加/削除/属性編集・電力値制御・UP/DOW
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import random
@@ -153,10 +154,62 @@ async def _jitter_loop() -> None:
 
 
 # ---------------------------------------------------------------------------
+# 起動時デバイス初期登録
+# ---------------------------------------------------------------------------
+INITIAL_DEVICES_FILE = os.getenv("INITIAL_DEVICES_FILE", "/config/devices.json")
+
+
+def _load_initial_devices() -> None:
+    """INITIAL_DEVICES_FILE が存在すれば起動時にデバイスを一括登録する"""
+    if not os.path.isfile(INITIAL_DEVICES_FILE):
+        logger.info(f"Initial devices file not found, skipping: {INITIAL_DEVICES_FILE}")
+        return
+
+    try:
+        with open(INITIAL_DEVICES_FILE, encoding="utf-8") as f:
+            entries: list[dict[str, Any]] = json.load(f)
+    except Exception as exc:
+        logger.error(f"Failed to load initial devices file: {exc}")
+        return
+
+    loaded = 0
+    for entry in entries:
+        device_id = entry.get("device_id")
+        if not device_id:
+            logger.warning(f"Skipping entry without device_id: {entry}")
+            continue
+        if device_id in _devices:
+            logger.debug(f"device_id '{device_id}' already exists, skipping")
+            continue
+        jitter_min = float(entry.get("jitter_min", 5.0))
+        jitter_max = float(entry.get("jitter_max", 100.0))
+        if jitter_max < jitter_min:
+            logger.warning(f"jitter_max < jitter_min for {device_id}, swapping")
+            jitter_min, jitter_max = jitter_max, jitter_min
+        rec: dict[str, Any] = {
+            "device_id": device_id,
+            "power_watts": float(entry.get("power_watts", 10.0)),
+            "up": True,
+            "auto_jitter": bool(entry.get("auto_jitter", True)),
+            "jitter_min": jitter_min,
+            "jitter_max": jitter_max,
+            "attrs": entry.get("attrs", {}),
+        }
+        _devices[device_id] = rec
+        _apply_metrics(device_id)
+        loaded += 1
+
+    logger.info(
+        f"Initial devices loaded: {loaded} device(s) from {INITIAL_DEVICES_FILE}"
+    )
+
+
+# ---------------------------------------------------------------------------
 # FastAPI アプリケーション
 # ---------------------------------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # noqa: ANN001
+    _load_initial_devices()
     task = asyncio.create_task(_jitter_loop())
     logger.info(f"Dummy exporter started. Jitter interval: {JITTER_INTERVAL}s")
     yield

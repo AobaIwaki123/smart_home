@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dummy-exporter-initial-devices
+  labels:
+    app: dummy-exporter
+data:
+  devices.json: |
+    [
+      {
+        "device_id": "DUMMY001",
+        "attrs": {
+          "name": "プラグミニ_da",
+          "room": "work",
+          "shelf": "desk",
+          "device": "pc",
+          "parent_id": "DUMMY002"
+        },
+        "power_watts": 120.0,
+        "auto_jitter": true,
+        "jitter_min": 80.0,
+        "jitter_max": 200.0
+      },
+      {
+        "device_id": "DUMMY002",
+        "attrs": {
+          "name": "プラグミニ_5e",
+          "room": "work",
+          "shelf": "desk",
+          "device": "multi-tap-a",
+          "parent_id": "none"
+        },
+        "power_watts": 50.0,
+        "auto_jitter": true,
+        "jitter_min": 30.0,
+        "jitter_max": 100.0
+      },
+      {
+        "device_id": "DUMMY003",
+        "attrs": {
+          "name": "モニター_left",
+          "room": "work",
+          "shelf": "desk",
+          "device": "monitor",
+          "parent_id": "DUMMY002"
+        },
+        "power_watts": 30.0,
+        "auto_jitter": true,
+        "jitter_min": 20.0,
+        "jitter_max": 45.0
+      },
+      {
+        "device_id": "DUMMY004",
+        "attrs": {
+          "name": "シーリングライト",
+          "room": "living",
+          "shelf": "ceiling",
+          "device": "light",
+          "parent_id": "none"
+        },
+        "power_watts": 8.0,
+        "auto_jitter": false,
+        "jitter_min": 5.0,
+        "jitter_max": 15.0
+      }
+    ]

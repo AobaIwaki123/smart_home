@@ -12,10 +12,9 @@ spec:
       app: grafana
       component: visualization
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 1
+    type: Recreate
+    # RollingUpdate cannot be used with ReadWriteOnce PVC
+
   minReadySeconds: 10
   template:
     metadata:

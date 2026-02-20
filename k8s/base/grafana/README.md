@@ -59,16 +59,42 @@ curl http://localhost:3000/api/health
 
 ---
 
-## Tailscale での外部公開
+## ダッシュボードの追加方法
 
-VPN 越しに Grafana に安全にアクセスする場合は  
-[k8s/tailscale/README.md](../../tailscale/README.md) を参照。
+新しいダッシュボード（JSON）を追加する際は、以下の手順に従ってください。
+
+1. **ConfigMap の作成**:
+   新しいダッシュボードの JSON 定義を含む ConfigMap (例: `configmap-dashboard-new.yaml`) を作成します。
+   `metadata.name` は既存のものと重複しないように注意してください。
+
+2. **kustomization.yaml への追加**:
+   `resources` リストに作成したファイルを追加します。
+
+   ```yaml
+   resources:
+     - configmap-dashboard-device-overview.yaml
+     - configmap-dashboard-room-overview.yaml
+     - configmap-dashboard-new.yaml  # 追加
+   ```
+
+3. **Deployment の更新 (重要)**:
+   すべてのダッシュボード定義ファイルをコンテナ内の同一ディレクトリ (`/var/lib/grafana/dashboards`) に配置するため、**Projected Volume** を使用しています。
+   `deployment.yaml` 内の `volumes` 設定にある `dashboards` ボリュームの `sources` リストに新しい ConfigMap を追加してください。
+
+   ```yaml
+   volumes:
+     - name: dashboards
+       projected:
+         sources:
+           - configMap:
+               name: grafana-dashboard-device-overview
+           - configMap:
+               name: grafana-dashboard-room-overview
+           - configMap:                 # 追加
+               name: grafana-dashboard-new
+   ```
+
+   ※ 個別の `configMap` ボリュームとしてマウントすると、ディレクトリが上書きされて他のダッシュボードが見えなくなるため、必ず `projected` リストに追加してください。
 
 ---
 
-## 注意事項
-
-- `GF_SERVER_ROOT_URL` は Tailscale などで公開する際に実際の URL に変更すること
-- ダッシュボードを GUI で編集した内容は PVC に保存されるが、ConfigMap の JSON が
-  次のデプロイで上書きされる可能性がある。変更を永続化するには ConfigMap の JSON を更新すること
-- PVC を削除すると GUI で保存したプラグイン・設定・ユーザーが失われる

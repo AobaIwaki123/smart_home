@@ -28,11 +28,23 @@ Grafana ダッシュボードの動作確認に使用できる。
 
 ## 構成ファイル
 
-| ファイル             | 内容                                  |
-| -------------------- | ------------------------------------- |
-| `deployment.yaml`    | dummy-exporter コンテナのデプロイ設定 |
-| `service.yaml`       | ClusterIP サービス（ポート 9100）     |
-| `kustomization.yaml` | このコンポーネントのリソース一覧      |
+| ファイル                         | 内容                                   |
+| -------------------------------- | -------------------------------------- |
+| `deployment.yaml`                | dummy-exporter コンテナのデプロイ設定  |
+| `service.yaml`                   | ClusterIP サービス（ポート 9100）      |
+| `configmap-initial-devices.yaml` | 起動時に一括登録される初期デバイス定義 |
+| `kustomization.yaml`             | このコンポーネントのリソース一覧       |
+
+---
+
+## 初期デバイス
+
+dummy-exporter は起動時に ConfigMap で定義したデバイスを自動登録する。
+デバイスを追加・変更したい場合は `configmap-initial-devices.yaml` の JSON を編集し、
+Pod を再起動すれば反映される。
+
+現在登録されているデバイスは `work / living / kitchen / bedroom` の4部屋にまたがる計10台で、
+Grafana ダッシュボードで複数部屋の消費電力を確認できる構成になっている。
 
 ソースコードは [`services/dummy-exporter/`](../../../../services/dummy-exporter/) にある。
 

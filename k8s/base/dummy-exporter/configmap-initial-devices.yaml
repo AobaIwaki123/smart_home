@@ -52,6 +52,34 @@ data:
       {
         "device_id": "DUMMY004",
         "attrs": {
+          "name": "モニター_right",
+          "room": "work",
+          "shelf": "desk",
+          "device": "monitor",
+          "parent_id": "DUMMY002"
+        },
+        "power_watts": 28.0,
+        "auto_jitter": true,
+        "jitter_min": 18.0,
+        "jitter_max": 40.0
+      },
+      {
+        "device_id": "DUMMY005",
+        "attrs": {
+          "name": "デスクライト",
+          "room": "work",
+          "shelf": "desk",
+          "device": "light",
+          "parent_id": "DUMMY002"
+        },
+        "power_watts": 6.0,
+        "auto_jitter": false,
+        "jitter_min": 4.0,
+        "jitter_max": 8.0
+      },
+      {
+        "device_id": "DUMMY006",
+        "attrs": {
           "name": "シーリングライト",
           "room": "living",
           "shelf": "ceiling",
@@ -62,5 +90,61 @@ data:
         "auto_jitter": false,
         "jitter_min": 5.0,
         "jitter_max": 15.0
+      },
+      {
+        "device_id": "DUMMY007",
+        "attrs": {
+          "name": "テレビ",
+          "room": "living",
+          "shelf": "tv-stand",
+          "device": "tv",
+          "parent_id": "DUMMY008"
+        },
+        "power_watts": 80.0,
+        "auto_jitter": true,
+        "jitter_min": 60.0,
+        "jitter_max": 120.0
+      },
+      {
+        "device_id": "DUMMY008",
+        "attrs": {
+          "name": "プラグミニ_living",
+          "room": "living",
+          "shelf": "tv-stand",
+          "device": "multi-tap-b",
+          "parent_id": "none"
+        },
+        "power_watts": 90.0,
+        "auto_jitter": true,
+        "jitter_min": 60.0,
+        "jitter_max": 150.0
+      },
+      {
+        "device_id": "DUMMY009",
+        "attrs": {
+          "name": "冷蔵庫",
+          "room": "kitchen",
+          "shelf": "counter",
+          "device": "refrigerator",
+          "parent_id": "none"
+        },
+        "power_watts": 40.0,
+        "auto_jitter": true,
+        "jitter_min": 10.0,
+        "jitter_max": 80.0
+      },
+      {
+        "device_id": "DUMMY010",
+        "attrs": {
+          "name": "エアコン",
+          "room": "bedroom",
+          "shelf": "wall",
+          "device": "air-conditioner",
+          "parent_id": "none"
+        },
+        "power_watts": 600.0,
+        "auto_jitter": true,
+        "jitter_min": 400.0,
+        "jitter_max": 1200.0
       }
     ]
